@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 
 
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Data</title>
@@ -35,59 +36,73 @@
 
       <main class="main">
         <form action="pushedHealthData.php" method="post">
-            <label for="astonautName">Astronaut</label>
-            <select name="astronautName" id="astronautName">
+            <label for="Astronaut-Name">Astronaut</label>
+            <select name="Astronaut-Name" id="astronautName">
                 <option>Neil Armstrong</option>
                 <option>Donald Trump</option>
                 <option>Vladimir Putin</option>
             </select>
 
-            <label for=""><h3>Physical Health</h3></label>
+            <label><h3>Physical Health</h3></label>
 
 
-            <label for="herzfrequenz">Heart rate (bpm)</label>
-            <input name="herzfrequenz" type="number" id="herzfrequenz" >
-
-            <label for="blutdruck">Blood pressure (mmHg)</label>
-            <input name="blutdruck" type="text" id="blutdruck" placeholder="120/80" required>
+            <label for="BPM">Heart rate (bpm)</label>
+            <input name="BPM" type="text" id="bpm" >
+            
+            <table>
+              <tr>
+                <label>Blood pressure (mmHg)</label>
+                <td>
+                  <label for="Systole">Systole</label>
+                  <input name="Systole" type="number" id="systole" placeholder="120" >
+                </td>
+                <td>
+                  <label for="Diastole">Diastole</label>
+                  <input name="Diastole" type="number" id="diastole" placeholder="80" >
+                </td>
+              </tr>
+            </table>
+           
+            
+            
             
 
-            <label for="koerpertemperatur">Body temperature (°C)</label>
-            <input name="koerpertemperatur" type="number" step="0.1" id="koerpertemperatur" required>
+            <label for="Bodytemperature">Body temperature (°C)</label>
+            <input name="Bodytemperature" type="number" step="0.1" id="koerpertemperatur" >
 
-            <label for="sauerstoffsaettigung">Oxygen saturation (%)</label>
-            <input name="sauerstoffsaettigung" type="number" id="sauerstoffsaettigung" required>
+            <label for="Oxygen-Saturation">Oxygen saturation (%)</label>
+            <input name="Oxygen-Saturation" type="number" id="sauerstoffsaettigung" >
 
-            <label for="schlafdauer">Sleep duration (hours)</label>
-            <input name="schlafdauer" type="number" step="0.1" id="schlafdauer" required>
+            <label for="Sleep-Duration">Sleep duration (hours)</label>
+            <input name="Sleep-Duration" type="number" step="0.1" id="schlafdauer" >
 
-            <label for="knochendichte">Bone density (g/cm²)</label>
-            <input name="knochendichte" type="number" step="0.01" id="knochendichte" required>
+            <label for="Bone-Density">Bone density (g/cm²)</label>
+            <input name="Bone-Density" type="number" step="0.01" id="knochendichte" >
 
-            <label for="anfangs_knochendichte">Initial bone density (g/cm²)</label>
-            <input name="anfangs_knochendichte" type="number" step="0.01" id="anfangs_knochendichte" required>
+            <label for="Initial-Bone-Density">Initial bone density (g/cm²)</label>
+            <input name="Initial-Bone-Density" type="number" step="0.01" id="anfangs_knochendichte" >
 
-            <label for="muskelkraft">Muscle strength (N)</label>
-            <input name="muskelkraft" type="number" id="muskelkraft" required>
+            <label for="Muscle-Strength">Muscle strength (N)</label>
+            <input name="Muscle-Strength" type="number" id="muskelkraft" >
 
-            <label for="ausgangswert_muskelkraft">Initial muscle strength (N)</label>
-            <input name="ausgangswert_muskelkraft" type="number" id="ausgangswert_muskelkraft" required>
+            <label for="Initial-Muscle-Strength">Initial muscle strength (N)</label>
+            <input name="Initial-Muscle-Strength" type="number" id="ausgangswert_muskelkraft" >
 
-            <label for="name">Sport duration (hours)</label>
-            <input name="sport" type="number" step="0.1" id="sport" required>
+            <label for="Sport-Duratuion">Sport duration (hours)</label>
+            <input name="Sport-Duration" type="number" step="0.1" id="sport" >
             
 
             
             <label><h3>Radiation Exposure</h3></label>
        
             
-            <label for="strahlungsbelastung">Radiation exposure (mSv)</label>
-            <input name="strahlungsbelastung" type="number" step="0.01" id="strahlungsbelastung" required>
+            <label for="Radiation-Exposure">Radiation exposure (mSv)</label>
+            <input name="Radiation-Exposure" type="number" step="0.01" id="strahlungsbelastung" required>
     
-            <label for="bereich">Measurement location</label>                
-            <select name="bereich" id="bereich" required>
-                <option value="1">Inside</option>
-                <option value="2">Outside</option>
+            <label for="Measurement-Location">Measurement location</label>                
+            <select name="Measurement-Location" id="bereich" required>
+                <option value="Inside">Inside</option>
+                <option value="Outside">Outside</option>
             </select>
 
             <button type="submit"><h3>Submit</h3></button>
