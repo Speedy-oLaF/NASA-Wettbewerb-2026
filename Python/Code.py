@@ -37,7 +37,7 @@ def home():
 #Datenseite
 @app.route("/data")
 def data():
-    return render_template("data.html")
+    return render_template("vitalMeasurements.html")
 
 #API: Gesundheitswerte auswerten
 @app.route("/api/auswertung", methods=["POST"])
@@ -73,7 +73,7 @@ def auswertung_api():
 
         sport = float(daten["sport"])
 
-        # AUSWERTUNG DURCH AUSWERTUNG.PY
+        # AUSWERTUNG DURCH auswertung.html
         bewertung = {
 
             "herzfrequenz":

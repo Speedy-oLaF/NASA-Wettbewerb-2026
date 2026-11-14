@@ -35,7 +35,7 @@ max_strahlungsbelastung_innen = 1.3
 
 min_muskelkraft_prozent = 80
 
-min_sport = 1.3
+min_sport = 1.5
 
 # Werte außen
 max_herzfrequenz_außen = 120

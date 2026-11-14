@@ -1,0 +1,130 @@
+{
+  "1": {
+    "name": "Astronaut 1",
+    "werte": {
+      "herzfrequenz": 72.0,
+      "blutdruck": "120/80",
+      "koerpertemperatur": 36.6,
+      "sauerstoffsaetigung": 98.0,
+      "schlafdauer": 7.5,
+      "knochendichte": 1.0,
+      "ernaehrung": 2600.0,
+      "strahlungsbelastung": 0.8,
+      "muskelkraft": 440.0,
+      "muskelkraft_ausgangswert": 460.0,
+      "sport": 1.5
+    }
+  },
+  "2": {
+    "name": "Astronaut 2",
+    "werte": {
+      "herzfrequenz": 135.0,
+      "blutdruck": "130/85",
+      "koerpertemperatur": 36.9,
+      "sauerstoffsaetigung": 97.0,
+      "schlafdauer": 6.5,
+      "knochendichte": 1.1,
+      "ernaehrung": 2800.0,
+      "strahlungsbelastung": 1.0,
+      "muskelkraft": 500.0,
+      "muskelkraft_ausgangswert": 510.0,
+      "sport": 2.0
+    }
+  },
+  "3": {
+    "name": "Astronaut 3",
+    "werte": {
+      "herzfrequenz": 65.0,
+      "blutdruck": "115/75",
+      "koerpertemperatur": 36.4,
+      "sauerstoffsaetigung": 99.0,
+      "schlafdauer": 5.0,
+      "knochendichte": 0.95,
+      "ernaehrung": 2300.0,
+      "strahlungsbelastung": 1.2,
+      "muskelkraft": 400.0,
+      "muskelkraft_ausgangswert": 420.0,
+      "sport": 1.3
+    }
+  },
+  "4": {
+    "name": "Astronaut 4",
+    "werte": {
+      "herzfrequenz": 80.0,
+      "blutdruck": "125/82",
+      "koerpertemperatur": 37.0,
+      "sauerstoffsaetigung": 96.0,
+      "schlafdauer": 8.0,
+      "knochendichte": 1.2,
+      "ernaehrung": 3000.0,
+      "strahlungsbelastung": 0.5,
+      "muskelkraft": 480.0,
+      "muskelkraft_ausgangswert": 480.0,
+      "sport": 1.8
+    }
+  },
+  "5": {
+    "name": "Astronaut 4",
+    "werte": {
+      "herzfrequenz": 80.0,
+      "blutdruck": "125/82",
+      "koerpertemperatur": 37.0,
+      "sauerstoffsaetigung": 96.0,
+      "schlafdauer": 8.0,
+      "knochendichte": 1.2,
+      "ernaehrung": 3000.0,
+      "strahlungsbelastung": 0.5,
+      "muskelkraft": 480.0,
+      "muskelkraft_ausgangswert": 480.0,
+      "sport": 10.8
+    }
+  },
+  "6": {
+    "name": "Astronaut 4",
+    "werte": {
+      "herzfrequenz": 80.0,
+      "blutdruck": "125/82",
+      "koerpertemperatur": 37.0,
+      "sauerstoffsaetigung": 96.0,
+      "schlafdauer": 8.0,
+      "knochendichte": 1.2,
+      "ernaehrung": 3000.0,
+      "strahlungsbelastung": 0.5,
+      "muskelkraft": 480.0,
+      "muskelkraft_ausgangswert": 480.0,
+      "sport": 1.8
+    }
+  },
+  "7": {
+    "name": "Astronaut 4",
+    "werte": {
+      "herzfrequenz": 80.0,
+      "blutdruck": "125/82",
+      "koerpertemperatur": 37.0,
+      "sauerstoffsaetigung": 96.0,
+      "schlafdauer": 8.0,
+      "knochendichte": 1.2,
+      "ernaehrung": 3000.0,
+      "strahlungsbelastung": 0.5,
+      "muskelkraft": 480.0,
+      "muskelkraft_ausgangswert": 480.0,
+      "sport": 1.8
+    }
+  },
+  "8": {
+    "name": "Astronaut 4",
+    "werte": {
+      "herzfrequenz": 80.0,
+      "blutdruck": "125/82",
+      "koerpertemperatur": 37.0,
+      "sauerstoffsaetigung": 96.0,
+      "schlafdauer": 8.0,
+      "knochendichte": 1.2,
+      "ernaehrung": 3000.0,
+      "strahlungsbelastung": 0.5,
+      "muskelkraft": 480.0,
+      "muskelkraft_ausgangswert": 480.0,
+      "sport": 1.8
+    }
+  }
+}

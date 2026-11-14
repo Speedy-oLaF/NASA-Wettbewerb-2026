@@ -24,109 +24,75 @@
         <aside>
           <ul>
             <li><a href="index.html">Home</a></li>
-            <li><a href="data.html">Messen</a></li>
-            <li><a href="auswertung.py">Auswertung</a></li>
+            <li><a href="vitalMeasurements.html">Messen</a></li>
+            <li><a href="auswertung.html">Auswertung</a></li>
             <li><a href="symthome.html">Symptome</a></li>
-            <li><a href="verlaufgraph.js">Verlauf</a></li>
-            <li><a href="training.md">Training</a></li>
+            <li><a href="verlauf.html">Verlauf</a></li>
+            <li><a href="training.html">Training</a></li>
           </ul>
         </aside>
       </nav>
 
       <main class="main">
-        <article>
-          <header>
-            <h3>Physical Health</h3>
-          </header>
+        <form action="pushedHealthData.php" method="post">
+            <label for="astonautName">Astronaut</label>
+            <select name="astronautName" id="astronautName">
+                <option>Neil Armstrong</option>
+                <option>Donald Trump</option>
+                <option>Vladimir Putin</option>
+            </select>
 
-          <label>
-            Heart rate (bpm)
-            <input type="number" id="herzfrequenz" required>
-          </label>
-
-          <label>
-            Blood pressure (mmHg)
-            <input type="text" id="blutdruck" placeholder="120/80" required>
-          </label>
-
-          <label>
-            Body temperature (°C)
-            <input type="number" step="0.1" id="koerpertemperatur" required>
-          </label>
-
-          <label>
-            Oxygen saturation (%)
-            <input type="number" id="sauerstoffsaettigung" required>
-          </label>
-
-          <label>
-            Sleep duration (hours)
-            <input type="number" step="0.1" id="schlafdauer" required>
-          </label>
-
-          <label>
-            Bone density (g/cm²)
-            <input type="number" step="0.01" id="knochendichte" required>
-          </label>
-
-          <label>
-            Initial bone density (g/cm²)
-            <input type="number" step="0.01" id="anfangs_knochendichte" required>
-          </label>
-
-          <label>
-            Muscle strength (N)
-            <input type="number" id="muskelkraft" required>
-          </label>
-
-          <label>
-            Initial muscle strength (N)
-            <input type="number" id="ausgangswert_muskelkraft" required>
-          </label>
-
-          <label>
-            Sport duration (hours)
-            <input type="number" step="0.1" id="sport" required>
-          </label>
-        </article>
-          
-          </article>
-        <h3>Radiation Exposure</h3>
-        </header>
-
-        <label>
-          Radiation exposure (mSv)
-          <input type="number" step="0.01" id="strahlungsbelastung" required>
-        </label>
-
-        <label>
-          Measurement location
-          <select id="bereich" required>
-            <option value="1">Inside</option>
-            <option value="2">Outside</option>
-          </select>
-        </label>
-        </article>
+            <label for=""><h3>Physical Health</h3></label>
 
 
-        <article>
-          <header>
-            <h3>Mental states</h3>
-          </header>
+            <label for="herzfrequenz">Heart rate (bpm)</label>
+            <input name="herzfrequenz" type="number" id="herzfrequenz" >
 
-   
-        </article>
-        <form id="healthForm">
-          <button type="submit">Evaluate measurements</button>
+            <label for="blutdruck">Blood pressure (mmHg)</label>
+            <input name="blutdruck" type="text" id="blutdruck" placeholder="120/80" required>
+            
+
+            <label for="koerpertemperatur">Body temperature (°C)</label>
+            <input name="koerpertemperatur" type="number" step="0.1" id="koerpertemperatur" required>
+
+            <label for="sauerstoffsaettigung">Oxygen saturation (%)</label>
+            <input name="sauerstoffsaettigung" type="number" id="sauerstoffsaettigung" required>
+
+            <label for="schlafdauer">Sleep duration (hours)</label>
+            <input name="schlafdauer" type="number" step="0.1" id="schlafdauer" required>
+
+            <label for="knochendichte">Bone density (g/cm²)</label>
+            <input name="knochendichte" type="number" step="0.01" id="knochendichte" required>
+
+            <label for="anfangs_knochendichte">Initial bone density (g/cm²)</label>
+            <input name="anfangs_knochendichte" type="number" step="0.01" id="anfangs_knochendichte" required>
+
+            <label for="muskelkraft">Muscle strength (N)</label>
+            <input name="muskelkraft" type="number" id="muskelkraft" required>
+
+            <label for="ausgangswert_muskelkraft">Initial muscle strength (N)</label>
+            <input name="ausgangswert_muskelkraft" type="number" id="ausgangswert_muskelkraft" required>
+
+            <label for="name">Sport duration (hours)</label>
+            <input name="sport" type="number" step="0.1" id="sport" required>
+            
+
+            
+            <label><h3>Radiation Exposure</h3></label>
+       
+            
+            <label for="strahlungsbelastung">Radiation exposure (mSv)</label>
+            <input name="strahlungsbelastung" type="number" step="0.01" id="strahlungsbelastung" required>
+    
+            <label for="bereich">Measurement location</label>                
+            <select name="bereich" id="bereich" required>
+                <option value="1">Inside</option>
+                <option value="2">Outside</option>
+            </select>
+
+            <button type="submit"><h3>Submit</h3></button>
         </form>
-
-        <article id="resultBox" hidden>
-          <header>
-            <h3>Evaluation Results</h3>
-          </header>
-
-          <div id="results"></div>
-        </article>
+        
 
 
 
