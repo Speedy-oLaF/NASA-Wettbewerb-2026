@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <link rel="stylesheet" href="design.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Symptom Checker</title>
+</head>
+
+
+
+<body>
+  <div class="wrapper">
+
+    <header class="header">
+      <h1>Symptom Checker</h1>
+    </header>
+
+    <div class="content">
+      <nav class="nav">
+        <aside>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="data.html">Messen</a></li>
+            <li><a href="auswertung.py">Auswertung</a></li>
+            <li><a href="symthome.html">Symptome</a></li>
+            <li><a href="verlaufgraph.js">Verlauf</a></li>
+            <li><a href="training.md">Training</a></li>
+          </ul>
+        </aside>
+      </nav>
+
+
+      <main class="main">
+
+        <form>
+          <fieldset>
+            <legend>How are you feeling?</legend>
+            <label>
+              <input type="checkbox" name="anxiety">
+              Do you feel anxiety?
+            </label>
+
+            <label>
+              <input type="checkbox" name="sadness">
+              Do you regularly feel sadness?
+            </label>
+
+            <label>
+              <input type="checkbox" name="lonely">
+              Do you miss your friends heavily?
+            </label>
+          </fieldset>
+
+          <button type="submit">Submit responses</button>
+        </form>
+      </main>
+    </div>
+
+    <footer class="footer">
+      <p>© 2026 Health Monitoring Software</p>
+    </footer>
+
+  </div>
+</body>
+
+</html>
