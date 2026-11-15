@@ -97,7 +97,7 @@ print(json.dumps({
 pfad = os.path.join(os.path.dirname(os.path.abspath(__file__)), "critical_data.json")
 
 with open(pfad, "w", encoding="utf-8") as file:
-    json.dumps({
+    json.dump({
     "alarm": len(warnungen) > 0,
     "warnungen": warnungen,
     "geprueft": geprueft

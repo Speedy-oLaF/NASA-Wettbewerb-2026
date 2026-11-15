@@ -2,7 +2,8 @@
 <?php
 $data = $_POST;
 
-$send_data = [];
+$send_data = []; 
+$send_data["timestamp"] = date("c");
 $non_send_data = [];
 
 foreach ($data as $key => $value) {
@@ -13,15 +14,28 @@ foreach ($data as $key => $value) {
         $send_data[$key] = $value;
     }
 }
+
+$json = json_encode($send_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+//AI-Used till line 29
+$file = __DIR__ . "/../../python/send_data.json";
+
+$all_data = json_decode(file_get_contents($file), true);
+
+$all_data[] = $send_data;
+
+file_put_contents(
+    $file,
+    json_encode($all_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+);
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <link rel="stylesheet" href="design.css">
+    <link rel="stylesheet" href="../css/design.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='design.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='../css/design.css') }}">
 
 
     <meta charset="UTF-8">
@@ -41,12 +55,12 @@ foreach ($data as $key => $value) {
             <nav class="nav">
                 <aside>
                     <ul>
-                        <li><a href="index.html">Home</a></li>
-                        <li><a href="vitalMeasurements.html">Messen</a></li>
-                        <li><a href="auswertung.html">Auswertung</a></li>
-                        <li><a href="symthome.html">Symptome</a></li>
-                        <li><a href="verlauf.html">Verlauf</a></li>
-                        <li><a href="training.html">Training</a></li>
+                        <li><a href="../index.html">Home</a></li>
+                        <li><a href="../sides/vitalMeasurements.html">Messen</a></li>
+                        <li><a href="../sides/auswertung.html">Auswertung</a></li>
+                        <li><a href="../sides/symthome.html">Symptome</a></li>
+                        <li><a href="../sides/verlauf.html">Verlauf</a></li>
+                        <li><a href="../sides/training.html">Training</a></li>
                     </ul>
                 </aside>
             </nav>
