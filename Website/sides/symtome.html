@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.6/css/pico.min.css">
+  <link rel="stylesheet" href="design.css">
+
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Symptom Checker</title>
+</head>
+
+
+
+<body>
+  <div class="wrapper">
+
+    <header class="header">
+      <div><h1>Symptom Checker</h1><p class="untertitel">How is the crew feeling?</p></div>
+    </header>
+
+    <div class="content">
+      <nav class="nav">
+        <aside>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="vitalMeasurements.html">Messen</a></li>
+            <li><a href="auswertung.html">Auswertung</a></li>
+            <li><a href="symthome.html">Symptome</a></li>
+            <li><a href="verlauf.html">Verlauf</a></li>
+            <li><a href="training.html">Training</a></li>
+            <li><a href="flugarzt.html">Flugarzt</a></li>
+          </ul>
+        </aside>
+      </nav>
+
+
+
+      <main class="main">
+        <div id="symptomCheck"></div>
+      </main>
+    </div>
+
+    <footer class="footer">
+      <p>Health Monitoring Software · NASA Space Challenge 2026</p>
+      <p>Made by oLaF</p>
+    </footer>
+
+  </div>
+
+  <script src="symptome.js"></script>
+  <script>
+    /* ---------- Symptom-Check (einfache Version) ----------
+       So funktioniert es:
+       1. Jedes Symptom hat eine Dringlichkeit: 1 = beobachten, 2 = heute Flugarzt, 3 = Notfall.
+       2. Das dringendste ausgewählte Symptom bestimmt das Ergebnis.
+       3. Alle Messungen der ausgewählten Symptome werden gesammelt (ohne Doppelte).
+       4. Für jedes Symptom wird die häufigste Ursache im All und ein Tipp angezeigt. */
+
+    // Was gemessen werden soll -> wohin der Knopf führt.
+    // link: null = gibt es (noch) nicht im Formular, wird nur als Hinweis angezeigt
+    const IND = {
+      bp:    { name: "Blutdruck",           link: "vitalMeasurements.html#blutdruck" },
+      hr:    { name: "Herzfrequenz",        link: "vitalMeasurements.html#herzfrequenz" },
+      spo2:  { name: "Sauerstoffsättigung", link: "vitalMeasurements.html#sauerstoffsaettigung" },
+      temp:  { name: "Körpertemperatur",    link: "vitalMeasurements.html#koerpertemperatur" },
+      sleep: { name: "Schlafdauer",         link: "vitalMeasurements.html#schlafdauer" },
+      train: { name: "Training",            link: "training.html" },
+      glu:   { name: "Blutzucker",          link: null },
+      mood:  { name: "Stimmung",            link: null }
+    };
+
+    const NOTFALL_SCHRITTE = [
+      "Crew alarmieren – niemand bleibt allein.",
+      "Person sichern: festschnallen oder festhalten.",
+      "Atmung und Bewusstsein prüfen.",
+      "Blutdruck, Herzfrequenz und Sauerstoff messen.",
+      "Bodenkontrolle / Flugarzt sofort kontaktieren.",
+      "Notfall-Medizinkit und AED bereitlegen."
+    ];
+
+    // Zustand der Seite (statt S aus der Vorlage)
+    const S = {
+      sym: [],              // ausgewählte Symptom-IDs
+      astronaut: "",        // für den Bericht an den Flugarzt
+      astronauten: [],
+      notfallOffen: false,
+      meldung: null         // { art: "ok" | "fehler", text }
+    };
+
+    function vSym() {
+      // 1. Welche Symptome sind ausgewählt?
+      const gewaehlt = SYMPTOME.filter(s => S.sym.includes(s.id));
+
+      // 2. Das dringendste Symptom bestimmt die Stufe
+      let stufe = 0;
+      for (const s of gewaehlt) {
+        if (s.stufe > stufe) stufe = s.stufe;
+      }
+
+      // 3. Alle Messungen sammeln, ohne Doppelte
+      const messen = [];
+      for (const s of gewaehlt) {
+        for (const m of s.messen) {
+          if (!messen.includes(m)) messen.push(m);
+        }
+      }
+
+      // 4. Knöpfe zum Auswählen
+      let html = `<article class="sym-panel">
+        <h2>Was spürst du?</h2>
+        <p class="klein">Tippe alles an, was zutrifft.</p>
+        <div class="chips">`;
+      for (const s of SYMPTOME) {
+        html += `<button type="button" data-act="sym" data-arg="${s.id}" aria-pressed="${S.sym.includes(s.id)}">${s.name}</button>`;
+      }
+      html += `</div></article>`;
+
+      // 5. Ergebnis, sobald etwas ausgewählt ist
+      if (gewaehlt.length > 0) {
+        const e = STUFEN[stufe];
+        html += `<article class="sym-ergebnis st-${e.farbe}" role="status">
+          <div class="sym-titel"><span class="sym-symbol">${e.symbol}</span>${e.titel}</div>
+          <p>${e.text}</p>`;
+
+        if (stufe === 3) {
+          html += `<button type="button" class="sym-notfall-knopf" data-act="notfall">
+            ${S.notfallOffen ? "Notfall-Ablauf schließen" : "Notfall-Ablauf öffnen"}</button>`;
+          if (S.notfallOffen) {
+            html += `<ol class="sym-notfall">`;
+            for (const schritt of NOTFALL_SCHRITTE) html += `<li>${schritt}</li>`;
+            html += `</ol>`;
+          }
+        }
+
+        html += `<ul class="sym-liste">`;
+        for (const s of gewaehlt) {
+          html += `<li><b>${s.name}:</b> meist ${s.ursache}. Tipp: ${s.tipp}.</li>`;
+        }
+        html += `</ul>`;
+
+        html += `<span class="kennzahl-label">Jetzt messen</span><div class="sym-reihe">`;
+        for (const m of messen) {
+          const ind = IND[m];
+          html += ind.link
+            ? `<a role="button" class="outline" href="${ind.link}">${ind.name}</a>`
+            : `<span class="sym-ohne-link" title="Nicht im Messformular">${ind.name}</span>`;
+        }
+        html += `</div>`;
+
+        // Bericht an den Flugarzt
+        html += `<div class="sym-bericht">
+          <label for="symAstronaut">Astronaut
+            <select id="symAstronaut" data-act="astronaut">`;
+        for (const n of S.astronauten) {
+          html += `<option${n === S.astronaut ? " selected" : ""}>${n}</option>`;
+        }
+        html += `</select></label>
+          <div class="sym-reihe">
+            <button type="button" data-act="symmsg">An den Flugarzt schicken</button>
+            <button type="button" class="secondary outline" data-act="symclear">Neu starten</button>
+          </div>`;
+        if (S.meldung) {
+          html += `<p class="sym-meldung ${S.meldung.art}">${S.meldung.text}` +
+            (S.meldung.art === "ok" ? ` <a href="flugarzt.html">Zur Flugarzt-Seite →</a>` : "") + `</p>`;
+        }
+        html += `</div></article>`;
+      }
+      return html;
+    }
+
+    function zeichnen() {
+      document.getElementById("symptomCheck").innerHTML = vSym();
+    }
+
+    // ---------- Aktionen ----------
+    async function anFlugarztSchicken() {
+      const gewaehlt = SYMPTOME.filter(s => S.sym.includes(s.id));
+      const stufe = Math.max(...gewaehlt.map(s => s.stufe));
+      try {
+        const antwort = await fetch("symptome.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ astronaut: S.astronaut, symptome: S.sym, stufe })
+        });
+        const ergebnis = await antwort.json();
+        if (!antwort.ok) throw new Error(ergebnis.error || "HTTP " + antwort.status);
+        S.meldung = { art: "ok", text: "✓ Bericht für " + S.astronaut + " gespeichert (" +
+          new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + ")." };
+      } catch (fehler) {
+        S.meldung = { art: "fehler", text: "Bericht konnte nicht gespeichert werden: " + fehler.message };
+      }
+      zeichnen();
+    }
+
+    document.getElementById("symptomCheck").addEventListener("click", e => {
+      const knopf = e.target.closest("[data-act]");
+      if (!knopf || knopf.tagName === "SELECT") return;
+      const act = knopf.dataset.act;
+
+      if (act === "sym") {
+        const id = knopf.dataset.arg;
+        S.sym = S.sym.includes(id) ? S.sym.filter(x => x !== id) : [...S.sym, id];
+        S.meldung = null;
+        if (!SYMPTOME.some(s => S.sym.includes(s.id) && s.stufe === 3)) S.notfallOffen = false;
+        zeichnen();
+      } else if (act === "notfall") {
+        S.notfallOffen = !S.notfallOffen;
+        zeichnen();
+      } else if (act === "symmsg") {
+        anFlugarztSchicken();
+      } else if (act === "symclear") {
+        S.sym = [];
+        S.notfallOffen = false;
+        S.meldung = null;
+        zeichnen();
+      }
+    });
+
+    document.getElementById("symptomCheck").addEventListener("change", e => {
+      if (e.target.dataset.act === "astronaut") {
+        S.astronaut = e.target.value;
+        try { localStorage.setItem("symptomAstronaut", S.astronaut); } catch (x) {}
+      }
+    });
+
+    // Astronauten-Liste vom Server holen (für den Bericht)
+    async function laden() {
+      try {
+        const antwort = await fetch("status.php", { cache: "no-store" });
+        if (antwort.ok) S.astronauten = Object.keys(await antwort.json());
+      } catch (e) {}
+      if (S.astronauten.length === 0) S.astronauten = ["Reid Wiseman", "Victor Glover", "Christina Koch", "Jeremy Hansen"];
+
+      let gemerkt = null;
+      try { gemerkt = localStorage.getItem("symptomAstronaut"); } catch (e) {}
+      S.astronaut = S.astronauten.includes(gemerkt) ? gemerkt : S.astronauten[0];
+      zeichnen();
+    }
+
+    zeichnen();
+    laden();
+  </script>
+  <script src="layout.js"></script>
+</body>
+
+</html>
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.6/css/pico.min.css">
+  <link rel="stylesheet" href="design.css">
+
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Symptom Checker</title>
+</head>
+
+
+
+<body>
+  <div class="wrapper">
+
+    <header class="header">
+      <div><h1>Symptom Checker</h1><p class="untertitel">How is the crew feeling?</p></div>
+    </header>
+
+    <div class="content">
+      <nav class="nav">
+        <aside>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="vitalMeasurements.html">Messen</a></li>
+            <li><a href="auswertung.html">Auswertung</a></li>
+            <li><a href="symthome.html">Symptome</a></li>
+            <li><a href="verlauf.html">Verlauf</a></li>
+            <li><a href="training.html">Training</a></li>
+            <li><a href="flugarzt.html">Flugarzt</a></li>
+          </ul>
+        </aside>
+      </nav>
+
+
+
+      <main class="main">
+        <div id="symptomCheck"></div>
+      </main>
+    </div>
+
+    <footer class="footer">
+      <p>Health Monitoring Software · NASA Space Challenge 2026</p>
+      <p>Made by oLaF</p>
+    </footer>
+
+  </div>
+
+  <script src="symptome.js"></script>
+  <script>
+    /* ---------- Symptom-Check (einfache Version) ----------
+       So funktioniert es:
+       1. Jedes Symptom hat eine Dringlichkeit: 1 = beobachten, 2 = heute Flugarzt, 3 = Notfall.
+       2. Das dringendste ausgewählte Symptom bestimmt das Ergebnis.
+       3. Alle Messungen der ausgewählten Symptome werden gesammelt (ohne Doppelte).
+       4. Für jedes Symptom wird die häufigste Ursache im All und ein Tipp angezeigt. */
+
+    // Was gemessen werden soll -> wohin der Knopf führt.
+    // link: null = gibt es (noch) nicht im Formular, wird nur als Hinweis angezeigt
+    const IND = {
+      bp:    { name: "Blutdruck",           link: "vitalMeasurements.html#blutdruck" },
+      hr:    { name: "Herzfrequenz",        link: "vitalMeasurements.html#herzfrequenz" },
+      spo2:  { name: "Sauerstoffsättigung", link: "vitalMeasurements.html#sauerstoffsaettigung" },
+      temp:  { name: "Körpertemperatur",    link: "vitalMeasurements.html#koerpertemperatur" },
+      sleep: { name: "Schlafdauer",         link: "vitalMeasurements.html#schlafdauer" },
+      train: { name: "Training",            link: "training.html" },
+      glu:   { name: "Blutzucker",          link: null },
+      mood:  { name: "Stimmung",            link: null }
+    };
+
+    const NOTFALL_SCHRITTE = [
+      "Crew alarmieren – niemand bleibt allein.",
+      "Person sichern: festschnallen oder festhalten.",
+      "Atmung und Bewusstsein prüfen.",
+      "Blutdruck, Herzfrequenz und Sauerstoff messen.",
+      "Bodenkontrolle / Flugarzt sofort kontaktieren.",
+      "Notfall-Medizinkit und AED bereitlegen."
+    ];
+
+    // Zustand der Seite (statt S aus der Vorlage)
+    const S = {
+      sym: [],              // ausgewählte Symptom-IDs
+      astronaut: "",        // für den Bericht an den Flugarzt
+      astronauten: [],
+      notfallOffen: false,
+      meldung: null         // { art: "ok" | "fehler", text }
+    };
+
+    function vSym() {
+      // 1. Welche Symptome sind ausgewählt?
+      const gewaehlt = SYMPTOME.filter(s => S.sym.includes(s.id));
+
+      // 2. Das dringendste Symptom bestimmt die Stufe
+      let stufe = 0;
+      for (const s of gewaehlt) {
+        if (s.stufe > stufe) stufe = s.stufe;
+      }
+
+      // 3. Alle Messungen sammeln, ohne Doppelte
+      const messen = [];
+      for (const s of gewaehlt) {
+        for (const m of s.messen) {
+          if (!messen.includes(m)) messen.push(m);
+        }
+      }
+
+      // 4. Knöpfe zum Auswählen
+      let html = `<article class="sym-panel">
+        <h2>Was spürst du?</h2>
+        <p class="klein">Tippe alles an, was zutrifft.</p>
+        <div class="chips">`;
+      for (const s of SYMPTOME) {
+        html += `<button type="button" data-act="sym" data-arg="${s.id}" aria-pressed="${S.sym.includes(s.id)}">${s.name}</button>`;
+      }
+      html += `</div></article>`;
+
+      // 5. Ergebnis, sobald etwas ausgewählt ist
+      if (gewaehlt.length > 0) {
+        const e = STUFEN[stufe];
+        html += `<article class="sym-ergebnis st-${e.farbe}" role="status">
+          <div class="sym-titel"><span class="sym-symbol">${e.symbol}</span>${e.titel}</div>
+          <p>${e.text}</p>`;
+
+        if (stufe === 3) {
+          html += `<button type="button" class="sym-notfall-knopf" data-act="notfall">
+            ${S.notfallOffen ? "Notfall-Ablauf schließen" : "Notfall-Ablauf öffnen"}</button>`;
+          if (S.notfallOffen) {
+            html += `<ol class="sym-notfall">`;
+            for (const schritt of NOTFALL_SCHRITTE) html += `<li>${schritt}</li>`;
+            html += `</ol>`;
+          }
+        }
+
+        html += `<ul class="sym-liste">`;
+        for (const s of gewaehlt) {
+          html += `<li><b>${s.name}:</b> meist ${s.ursache}. Tipp: ${s.tipp}.</li>`;
+        }
+        html += `</ul>`;
+
+        html += `<span class="kennzahl-label">Jetzt messen</span><div class="sym-reihe">`;
+        for (const m of messen) {
+          const ind = IND[m];
+          html += ind.link
+            ? `<a role="button" class="outline" href="${ind.link}">${ind.name}</a>`
+            : `<span class="sym-ohne-link" title="Nicht im Messformular">${ind.name}</span>`;
+        }
+        html += `</div>`;
+
+        // Bericht an den Flugarzt
+        html += `<div class="sym-bericht">
+          <label for="symAstronaut">Astronaut
+            <select id="symAstronaut" data-act="astronaut">`;
+        for (const n of S.astronauten) {
+          html += `<option${n === S.astronaut ? " selected" : ""}>${n}</option>`;
+        }
+        html += `</select></label>
+          <div class="sym-reihe">
+            <button type="button" data-act="symmsg">An den Flugarzt schicken</button>
+            <button type="button" class="secondary outline" data-act="symclear">Neu starten</button>
+          </div>`;
+        if (S.meldung) {
+          html += `<p class="sym-meldung ${S.meldung.art}">${S.meldung.text}` +
+            (S.meldung.art === "ok" ? ` <a href="flugarzt.html">Zur Flugarzt-Seite →</a>` : "") + `</p>`;
+        }
+        html += `</div></article>`;
+      }
+      return html;
+    }
+
+    function zeichnen() {
+      document.getElementById("symptomCheck").innerHTML = vSym();
+    }
+
+    // ---------- Aktionen ----------
+    async function anFlugarztSchicken() {
+      const gewaehlt = SYMPTOME.filter(s => S.sym.includes(s.id));
+      const stufe = Math.max(...gewaehlt.map(s => s.stufe));
+      try {
+        const antwort = await fetch("symptome.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ astronaut: S.astronaut, symptome: S.sym, stufe })
+        });
+        const ergebnis = await antwort.json();
+        if (!antwort.ok) throw new Error(ergebnis.error || "HTTP " + antwort.status);
+        S.meldung = { art: "ok", text: "✓ Bericht für " + S.astronaut + " gespeichert (" +
+          new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + ")." };
+      } catch (fehler) {
+        S.meldung = { art: "fehler", text: "Bericht konnte nicht gespeichert werden: " + fehler.message };
+      }
+      zeichnen();
+    }
+
+    document.getElementById("symptomCheck").addEventListener("click", e => {
+      const knopf = e.target.closest("[data-act]");
+      if (!knopf || knopf.tagName === "SELECT") return;
+      const act = knopf.dataset.act;
+
+      if (act === "sym") {
+        const id = knopf.dataset.arg;
+        S.sym = S.sym.includes(id) ? S.sym.filter(x => x !== id) : [...S.sym, id];
+        S.meldung = null;
+        if (!SYMPTOME.some(s => S.sym.includes(s.id) && s.stufe === 3)) S.notfallOffen = false;
+        zeichnen();
+      } else if (act === "notfall") {
+        S.notfallOffen = !S.notfallOffen;
+        zeichnen();
+      } else if (act === "symmsg") {
+        anFlugarztSchicken();
+      } else if (act === "symclear") {
+        S.sym = [];
+        S.notfallOffen = false;
+        S.meldung = null;
+        zeichnen();
+      }
+    });
+
+    document.getElementById("symptomCheck").addEventListener("change", e => {
+      if (e.target.dataset.act === "astronaut") {
+        S.astronaut = e.target.value;
+        try { localStorage.setItem("symptomAstronaut", S.astronaut); } catch (x) {}
+      }
+    });
+
+    // Astronauten-Liste vom Server holen (für den Bericht)
+    async function laden() {
+      try {
+        const antwort = await fetch("status.php", { cache: "no-store" });
+        if (antwort.ok) S.astronauten = Object.keys(await antwort.json());
+      } catch (e) {}
+      if (S.astronauten.length === 0) S.astronauten = ["Reid Wiseman", "Victor Glover", "Christina Koch", "Jeremy Hansen"];
+
+      let gemerkt = null;
+      try { gemerkt = localStorage.getItem("symptomAstronaut"); } catch (e) {}
+      S.astronaut = S.astronauten.includes(gemerkt) ? gemerkt : S.astronauten[0];
+      zeichnen();
+    }
+
+    zeichnen();
+    laden();
+  </script>
+  <script src="layout.js"></script>
+</body>
+
+</html>
+
