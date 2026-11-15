@@ -1,0 +1,6 @@
+{
+    "alarm": true,
+    "warnings": [
+        "Puls zu niedrig: 30 BPM"
+    ]
+}

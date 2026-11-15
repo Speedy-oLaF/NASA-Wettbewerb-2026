@@ -271,5 +271,17 @@
         "Muscle-Strength": "6000",
         "Sport-Duration": "3",
         "Radiation-Exposure": "1"
+    },
+    {
+        "timestamp": "2026-11-15T18:19:22+01:00",
+        "Astronaut-Name": "Glover",
+        "BPM": "80",
+        "Systole": "120",
+        "Diastole": "80",
+        "Bodytemperature": "34",
+        "Oxygen-Saturation": "96",
+        "Weight": "100",
+        "Sleep-Duration": "8",
+        "Sport-Duration": "4"
     }
 ]

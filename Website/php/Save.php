@@ -8,6 +8,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style>
+        nav ul {
+            display: flex;
+            background-color: #2b2d2e;
+            gap: 0px;
+            border: 1px solid #343738;
+
+        }
+
+    </style>
 </head>
 <body>
    

@@ -176,7 +176,7 @@ function planErstellen(messung, datum = new Date()) {
     }
 
     if (strahlung !== null && strahlung > 0.9) {
-        hinweise.push({ art: "info", text: "Radiation " + strahlung + " mSv is above the EVA limit – training is fine, but stay inside." });
+        hinweise.push({ art: "info", text: "Radiation " + strahlung + " mSv is above the EVA limit – training is fine, but stay Raumstation." });
     }
 
     if (hinweise.length === 0) {

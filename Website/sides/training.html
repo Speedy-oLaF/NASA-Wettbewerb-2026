@@ -2,15 +2,89 @@
 <html lang="en" data-theme="dark">
 
 <head>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.6/css/pico.min.css">
-    <link rel="stylesheet" href="design.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='design.css') }}">
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/pico.min.css') }}">    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Training</title>
+    <style>
+        nav ul {
+            display: flex;
+            background-color: #2b2d2e;
+            gap: 0px;
+            border: 1px solid #343738;
+        }
 
+        :root {
+            --st-info: #4a90e2;
+            --st-warn: #e0a800;
+            --st-fokus: #9085e9;
+            --st-ok:   #2fa86b;
+            --st-crit: #e5484d;
+        }
+
+        .main { flex: 1; min-width: 0; grid-template-columns: minmax(0, 1fr); align-self: start; }
+        .main > * { min-width: 0; }
+        .untertitel { margin: 0; color: var(--pico-muted-color); }
+        .klein { font-size: 0.85rem; color: var(--pico-muted-color); margin: 0; }
+
+        /* Astronaut-Auswahl */
+        .steuerung { display: flex; flex-wrap: wrap; gap: 1rem; align-items: end; margin-bottom: 1rem; }
+        .steuerung label { flex: 1 1 200px; max-width: 320px; margin: 0; }
+        .steuerung select { margin: 0.3rem 0 0; }
+
+        /* Kennzahl-Kacheln */
+        .kennzahl-reihe { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .kennzahl { display: flex; flex-direction: column; gap: 0.35rem; margin: 0; padding: 1rem 1.2rem; }
+        .kennzahl-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--pico-muted-color); }
+        .kennzahl-wert { font-size: 1.6rem; font-weight: 700; line-height: 1.2; }
+        .kennzahl-wert.klein-wert { font-size: 1.1rem; }
+
+        .meter { height: 8px; margin-top: 0.3rem; border-radius: 999px; background: var(--pico-muted-border-color); overflow: hidden; }
+        .meter-fuellung { height: 100%; width: 0; background: var(--pico-primary-background); border-radius: inherit; transition: width 0.3s; }
+        .meter-fuellung.fertig { background: var(--st-ok); }
+
+        /* Hinweise */
+        .hinweise { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem; }
+        .hinweise:empty { display: none; }
+        .hinweis { display: flex; gap: 0.6rem; align-items: flex-start; margin: 0; padding: 0.7rem 1rem;
+                   border-radius: var(--pico-border-radius); border-left: 4px solid var(--st-info); background: rgba(74, 144, 226, 0.12); }
+        .hinweis-warnung { border-left-color: var(--st-warn); background: rgba(224, 168, 0, 0.12); }
+        .hinweis-fokus   { border-left-color: var(--st-fokus); background: rgba(144, 133, 233, 0.12); }
+        .hinweis-ok      { border-left-color: var(--st-ok); background: rgba(47, 168, 107, 0.12); }
+        .hinweis-symbol { flex: 0 0 1.2em; text-align: center; font-weight: 700; }
+
+        /* Tagesplan */
+        .plan-kopf { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.5rem 1rem; }
+        .klein-knopf { width: auto; margin: 0; padding: 0.3rem 0.8rem; font-size: 0.85rem; }
+
+        .uebungen { margin: 0; padding: 0; }
+        .uebung { list-style: none; display: flex; gap: 0.9rem; align-items: flex-start; padding: 0.8rem 0;
+                  border-bottom: 1px solid var(--pico-muted-border-color); }
+        .uebung:last-child { border-bottom: none; }
+        .uebung input[type="checkbox"] { flex: 0 0 auto; margin: 0.25rem 0 0; }
+        .uebung-text { display: flex; flex-direction: column; gap: 0.2rem; margin: 0; cursor: pointer; }
+        .uebung-zeile { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+        .uebung-umfang { font-size: 0.95rem; }
+        .uebung.erledigt .uebung-text { opacity: 0.55; }
+        .uebung.erledigt strong { text-decoration: line-through; }
+
+        .tag { display: inline-block; padding: 0.05rem 0.55rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600;
+               border: 1px solid var(--pico-muted-border-color); color: var(--pico-muted-color); }
+
+        /* Wochenplan */
+        .woche { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.6rem; }
+        .wochentag { display: flex; flex-direction: column; align-items: flex-start; gap: 0.2rem; margin: 0; width: 100%;
+                     padding: 0.7rem 0.8rem; text-align: left; background: transparent; color: var(--pico-color);
+                     border: 1px solid var(--pico-muted-border-color); }
+        .wochentag:hover { border-color: var(--pico-primary); }
+        .wochentag.heute { border-color: var(--pico-primary-background); background: rgba(1, 114, 173, 0.18); }
+        .wochentag-name { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--pico-muted-color); }
+
+        #fehler { color: var(--st-crit); }
+    </style>
 </head>
 
 <body>
@@ -27,7 +101,7 @@
                         <li><a href="../index.html">Home</a></li>
                         <li><a href="vitalMeasurements.html">Messen</a></li>
                         <li><a href="../php/auswertung.php">Auswertung</a></li>
-                        <li><a href="symthome.html">Symptome</a></li>
+                        <li><a href="symptome.html">Symptome</a></li>
                         <li><a href="verlauf.html">Verlauf</a></li>
                         <li><a href="training.html">Training</a></li>
                         <li><a href="flugarzt.html">Flugarzt</a></li>
@@ -74,7 +148,6 @@
                     <ul class="uebungen" id="uebungen"></ul>
                 </article>
 
-                <!-- Wochenplan: Klick auf einen Tag wählt ihn aus -->
                 <article>
                     <header>
                         <strong>Weekly schedule</strong>
@@ -108,13 +181,11 @@
             return e;
         }
 
-        // ---------- Datum ----------
         // "2026-11-14" <-> Date (lokale Zeit, ohne Zeitzonen-Verschiebung)
         function zuText(d) {
             return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
         }
 
-        // Ausgewählter Tag (Standard: heute). Wird über den Wochenplan geändert.
         let ausgewaehlt = new Date();
 
         function gewaehlterTag() {
@@ -134,7 +205,7 @@
             return d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
         }
 
-        // ---------- Abgehakte Übungen pro Astronaut und Tag merken ----------
+
         function speicherSchluessel() {
             return "training:" + document.getElementById("astronautAuswahl").value + ":" + zuText(gewaehlterTag());
         }
@@ -148,8 +219,7 @@
             try { localStorage.setItem(speicherSchluessel(), JSON.stringify([...menge])); } catch (e) {}
         }
 
-        // ---------- Messung ----------
-        // Letzte Messung bis einschließlich zum gewählten Tag
+
         function letzteMessung(name, tag) {
             const ende = new Date(tag);
             ende.setHours(23, 59, 59, 999);
@@ -158,7 +228,6 @@
             return liste.reduce((a, b) => (new Date(b.timestamp) > new Date(a.timestamp) ? b : a));
         }
 
-        // ---------- Anzeige ----------
         function hinweiseZeichnen(hinweise) {
             const symbole = { warnung: "⚠", fokus: "◎", info: "ℹ", ok: "✓" };
             document.getElementById("hinweise").replaceChildren(...hinweise.map(h => {
@@ -190,7 +259,6 @@
 
             hinweiseZeichnen(hinweise);
 
-            // Kennzahlen
             document.getElementById("fortschrittLabel").textContent =
                 istHeute(tag) ? "Today's progress" : "Progress on " + tag.toLocaleDateString("de-DE");
             const minuten = plan.reduce((s, id) => s + UEBUNGEN[id].dauer, 0);
@@ -207,7 +275,6 @@
                 (istHeute(tag) ? "Today's plan" : "Plan for " + tagesText(tag)) +
                 (leichterTag ? " · light day" : "") + " · " + name;
 
-            // Übungsliste
             const erledigt = erledigteLaden();
             const eintraege = plan.map(id => {
                 const u = UEBUNGEN[id];
@@ -266,27 +333,74 @@
             }));
         }
 
-        // ---------- Daten laden ----------
-        async function laden() {
-            const fehler = document.getElementById("fehler");
-            try {
-                const antwort = await fetch("pushedHealthData.php?api=1", { cache: "no-store" });
-                if (!antwort.ok) throw new Error("HTTP " + antwort.status);
-                alleDaten = await antwort.json();
+        // ---------- Daten aus Python/Astronauten/send_data_<name>.json (wie in verlauf.html) ----------
+        // Feldnamen aus dem Formular -> Namen, die training.js erwartet
+        const FORMULAR_FELDER = {
+            "BPM":                     "herzfrequenz",
+            "Bodytemperature":         "koerpertemperatur",
+            "Oxygen-Saturation":       "sauerstoffsaettigung",
+            "Sleep-Duration":          "schlafdauer",
+            "Bone-Density":            "knochendichte",
+            "Initial-Bone-Density":    "anfangs_knochendichte",
+            "Muscle-Strength":         "muskelkraft",
+            "Initial-Muscle-Strength": "ausgangswert_muskelkraft",
+            "Sport-Duration":          "sport",
+            "Radiation-Exposure":      "strahlungsbelastung",
+            "Weight":                  "gewicht",
+        };
 
-                const auswahl = document.getElementById("astronautAuswahl");
-                let gemerkt = null;
-                try { gemerkt = localStorage.getItem("trainingAstronaut"); } catch (e) {}
-                auswahl.replaceChildren(...Object.keys(alleDaten).map(n => el("option", "", n)));
-                if (gemerkt && gemerkt in alleDaten) auswahl.value = gemerkt;
-            } catch (e) {
-                fehler.textContent = "Could not load measurements (is the PHP server running?): " + e.message;
+        function messungUmwandeln(m) {
+            const eintrag = { ...m };
+            if (eintrag.sauerstoffsaettigung === undefined && eintrag.sauerstoffsaetigung !== undefined) {
+                eintrag.sauerstoffsaettigung = eintrag.sauerstoffsaetigung;
+            }
+            for (const [formular, intern] of Object.entries(FORMULAR_FELDER)) {
+                if (eintrag[intern] === undefined && eintrag[formular] !== undefined) eintrag[intern] = eintrag[formular];
+            }
+            return eintrag;
+        }
+
+        async function laden() {
+            // training.html liegt in Website/sides/, die Daten in Python/Astronauten/
+            const ordner = "../../Python/Astronauten/";
+            const ASTRONAUTEN = ["Glover", "Hansen", "Koch", "Wiseman"];
+            const fehler = document.getElementById("fehler");
+            alleDaten = Object.fromEntries(ASTRONAUTEN.map(n => [n, []]));
+            let geladen = 0;
+
+            for (const n of ASTRONAUTEN) {
+                try {
+                    const antwort = await fetch(ordner + "send_data_" + n.toLowerCase() + ".json", { cache: "no-store" });
+                    if (!antwort.ok) continue;
+                    geladen++;
+                    const text = (await antwort.text()).trim();
+                    if (!text) continue;   // leere Datei = keine Messungen
+                    const json = JSON.parse(text);
+                    const liste = Array.isArray(json) ? json : Object.values(json).flat();
+                    alleDaten[n] = liste
+                        .filter(m => m && typeof m === "object" && m.timestamp)
+                        .map(messungUmwandeln);
+                } catch (e) {}
+            }
+
+            if (geladen) {
+                fehler.hidden = true;
+            } else {
+                fehler.textContent = "Could not load " + ordner + "send_data_*.json " +
+                    "(open the page via XAMPP, e.g. http://localhost/Website/sides/training.html).";
                 fehler.hidden = false;
             }
+
+            const auswahl = document.getElementById("astronautAuswahl");
+            let gemerkt = null;
+            try { gemerkt = localStorage.getItem("trainingAstronaut"); } catch (e) {}
+            auswahl.replaceChildren(...ASTRONAUTEN.map(n => el("option", "", n)));
+            if (gemerkt && gemerkt in alleDaten) auswahl.value = gemerkt;
+
             planZeichnen();
         }
 
-        // ---------- Bedienung ----------
+   
         document.getElementById("astronautAuswahl").addEventListener("change", e => {
             try { localStorage.setItem("trainingAstronaut", e.target.value); } catch (x) {}
             planZeichnen();

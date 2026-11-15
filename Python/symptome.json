@@ -1,0 +1,14 @@
+[
+    {
+        "id": "79d6ca237d8a",
+        "astronautName": "Victor Glover",
+        "symptome": [
+            "brust",
+            "flanke"
+        ],
+        "stufe": 3,
+        "timestamp": "2026-11-15T18:38:33+01:00",
+        "erledigt": true,
+        "erledigt_am": "2026-11-15T18:43:02+01:00"
+    }
+]

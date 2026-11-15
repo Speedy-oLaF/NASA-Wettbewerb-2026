@@ -240,7 +240,7 @@ def is_in_danger_sport(sport=1.3, innen_1_oder_außen_2=1):
     return auswertung
 
 
-def is_allowed_to_work_inside(messwerte):
+def is_allowed_to_work_Raumstation(messwerte):
     probleme = []
 
     if is_in_danger_herzfrequenz(messwerte["herzfrequenz"]) != False:
@@ -278,7 +278,7 @@ def is_allowed_to_work_inside(messwerte):
     else:
         return False, probleme
 
-def is_allowed_to_work_outside(messwerte):
+def is_allowed_to_work_Montstation(messwerte):
     probleme = []
 
     if is_in_danger_herzfrequenz(messwerte["herzfrequenz"], 2) != False:

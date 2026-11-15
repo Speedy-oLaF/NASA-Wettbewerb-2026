@@ -4,13 +4,20 @@
 <head>
     <link rel="stylesheet" href="css/design.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='../css/design.css') }}">
 
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Main</title>
+    <style>
+        nav ul {
+            display: flex;
+            background-color: #2b2d2e;
+            gap: 0px;
+            border: 1px solid #343738;
+        }
 
+  </style>
 </head>
 
 <body>
@@ -27,9 +34,10 @@
                         <li><a href="index.html">Home</a></li>
                         <li><a href="sides/vitalMeasurements.html">Messen</a></li>
                         <li><a href="php/auswertung.php">Auswertung</a></li>
-                        <li><a href="sides/symthome.html">Symptome</a></li>
+                        <li><a href="sides/symptome.html">Symptome</a></li>
                         <li><a href="sides/verlauf.html">Verlauf</a></li>
-                        <li><a href="training.html">Training</a></li>
+                        <li><a href="sides/training.html">Training</a></li>
+                        <li><a href="sides/flugarzt.html">Flugarzt</a></li>
                     </ul>
                 </aside>
             </nav>
@@ -103,6 +111,7 @@ setInterval(updateTimer, 1000);
 
 </script>
 
+    <script src="sides/layout.js"></script>
 </body>
 
 

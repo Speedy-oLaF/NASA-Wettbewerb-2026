@@ -1,4 +1,6 @@
 {
-    "alarm": false,
-    "warnings": []
+    "alarm": true,
+    "warnings": [
+        "Zu wenig Schlaf: 2 h"
+    ]
 }

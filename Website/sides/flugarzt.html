@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+
+<head>
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/pico.min.css') }}">    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flugarzt</title>
+    <style>
+        /* Sidebar wie auf den anderen Seiten */
+        nav ul {
+            display: flex;
+            background-color: #2b2d2e;
+            gap: 0px;
+            border: 1px solid #343738;
+        }
+
+        :root {
+            --st-info: #4a90e2;
+            --st-warn: #e0a800;
+            --st-crit: #e5484d;
+            --st-ok:   #2fa86b;
+        }
+
+        .main { flex: 1; min-width: 0; grid-template-columns: minmax(0, 1fr); align-self: start; }
+        .main > * { min-width: 0; }
+        .untertitel { margin: 0; color: var(--pico-muted-color); }
+        .klein { font-size: 0.85rem; color: var(--pico-muted-color); margin: 0; }
+
+        /* Kennzahl-Kacheln */
+        .kennzahl-reihe { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .kennzahl { display: flex; flex-direction: column; gap: 0.3rem; margin: 0; padding: 1rem 1.2rem; }
+        .kennzahl-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--pico-muted-color); }
+        .kennzahl-wert { font-size: 2rem; font-weight: 700; line-height: 1.1; }
+
+        /* Filter */
+        .steuerung { display: flex; flex-wrap: wrap; gap: 1rem; align-items: end; margin-bottom: 1rem; }
+        .steuerung label { flex: 1 1 200px; margin: 0; }
+        .steuerung select { margin: 0.3rem 0 0; }
+
+        /* Berichtskarten */
+        .berichte { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem; }
+        .bericht { margin: 0; padding: 1rem 1.2rem; border-left: 5px solid var(--st-info); }
+        .bericht.st-warn { border-left-color: var(--st-warn); }
+        .bericht.st-crit { border-left-color: var(--st-crit); }
+        .bericht.erledigt { opacity: 0.6; border-left-color: var(--pico-muted-border-color); }
+        .bericht-leer { margin: 0; text-align: center; color: var(--pico-muted-color); }
+
+        .bericht-kopf { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.5rem 1rem; margin-bottom: 0.6rem; }
+        .bericht-info { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.6rem; }
+
+        .sym-titel { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 1.1rem; }
+        .st-info .sym-titel { color: var(--st-info); }
+        .st-warn .sym-titel { color: var(--st-warn); }
+        .st-crit .sym-titel { color: var(--st-crit); }
+        .erledigt .sym-titel { color: var(--pico-muted-color); }
+        .sym-symbol { display: inline-flex; justify-content: center; width: 1.4em; }
+
+        .sym-liste { margin: 0 0 0.8rem; padding-left: 1.2rem; }
+        .sym-liste li { margin-bottom: 0.3rem; list-style: disc; }
+
+        .bericht-fuss { display: flex; flex-wrap: wrap; align-items: center; gap: 0.8rem 1.2rem; }
+        .bericht-fuss button { margin: 0 0 0 auto; width: auto; padding: 0.4rem 0.9rem; }
+
+        .badge { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
+        .badge.nein { background: rgba(224, 168, 0, 0.18); color: var(--st-warn); }
+        .badge.ja   { background: rgba(47, 168, 107, 0.18); color: var(--st-ok); }
+
+        #fehler { color: var(--st-crit); }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <header class="header">
+            <div><h1>Flugarzt</h1><p class="untertitel">Gesendete Symptom-Berichte der Crew</p></div>
+        </header>
+
+        <div class="content">
+            <nav class="nav">
+                <aside>
+                    <ul>
+                        <li><a href="../index.html">Home</a></li>
+                        <li><a href="vitalMeasurements.html">Messen</a></li>
+                        <li><a href="../php/auswertung.php">Auswertung</a></li>
+                        <li><a href="symptome.html">Symptome</a></li>
+                        <li><a href="verlauf.html">Verlauf</a></li>
+                        <li><a href="training.html">Training</a></li>
+                        <li><a href="flugarzt.html">Flugarzt</a></li>
+                    </ul>
+                </aside>
+            </nav>
+
+            <main class="main">
+
+                <div class="kennzahl-reihe">
+                    <article class="kennzahl">
+                        <span class="kennzahl-label">Offene Berichte</span>
+                        <span class="kennzahl-wert" id="anzahlOffen">–</span>
+                    </article>
+                    <article class="kennzahl">
+                        <span class="kennzahl-label">Davon Notfälle</span>
+                        <span class="kennzahl-wert" id="anzahlNotfall">–</span>
+                    </article>
+                    <article class="kennzahl">
+                        <span class="kennzahl-label">Berichte insgesamt</span>
+                        <span class="kennzahl-wert" id="anzahlGesamt">–</span>
+                    </article>
+                </div>
+
+                <div class="steuerung">
+                    <label for="filterAstronaut">Astronaut
+                        <select id="filterAstronaut"><option value="">Alle</option></select>
+                    </label>
+                    <label for="filterStatus">Status
+                        <select id="filterStatus">
+                            <option value="offen">Offen</option>
+                            <option value="erledigt">Erledigt</option>
+                            <option value="alle">Alle</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div id="berichte" class="berichte"></div>
+
+                <p id="fehler" hidden></p>
+                <p class="klein">Aktualisiert sich automatisch · zuletzt: <span id="aktualisiert">–</span></p>
+
+            </main>
+        </div>
+
+        <footer class="footer">
+            <p>Health Monitoring Software · NASA Space Challenge 2026</p>
+            <p>Made by oLaF</p>
+        </footer>
+    </div>
+
+    <script src="werte.js"></script>
+    <script src="symptome.js"></script>
+    <script>
+        let alleBerichte = [];
+        let letzterStand = "";
+
+        function el(tag, klasse, text) {
+            const e = document.createElement(tag);
+            if (klasse) e.className = klasse;
+            if (text !== undefined) e.textContent = text;
+            return e;
+        }
+
+        function symptom(id) {
+            return SYMPTOME.find(s => s.id === id) || { name: id, ursache: "", tipp: "" };
+        }
+
+        // ---------- Anzeige ----------
+        function zeichnen() {
+            const astronaut = document.getElementById("filterAstronaut").value;
+            const status = document.getElementById("filterStatus").value;
+
+            const offen = alleBerichte.filter(b => !b.erledigt);
+            document.getElementById("anzahlOffen").textContent = offen.length;
+            document.getElementById("anzahlNotfall").textContent = offen.filter(b => b.stufe === 3).length;
+            document.getElementById("anzahlGesamt").textContent = alleBerichte.length;
+
+            // Offene zuerst nach Dringlichkeit, dann die neuesten oben
+            const liste = alleBerichte
+                .filter(b => !astronaut || b.astronautName === astronaut)
+                .filter(b => status === "alle" || (status === "offen") === !b.erledigt)
+                .sort((a, b) =>
+                    (a.erledigt - b.erledigt) ||
+                    (a.erledigt ? 0 : b.stufe - a.stufe) ||
+                    new Date(b.timestamp) - new Date(a.timestamp));
+
+            const container = document.getElementById("berichte");
+            if (liste.length === 0) {
+                const leer = el("article", "bericht-leer");
+                leer.textContent = alleBerichte.length === 0
+                    ? "Noch keine Berichte. Sie entstehen über „An den Flugarzt schicken“ im Symptom-Check."
+                    : "Keine Berichte für diese Auswahl.";
+                container.replaceChildren(leer);
+                return;
+            }
+
+            container.replaceChildren(...liste.map(berichtKarte));
+        }
+
+        function berichtKarte(b) {
+            const stufe = STUFEN[b.stufe] || STUFEN[1];
+            const karte = el("article", "bericht st-" + stufe.farbe + (b.erledigt ? " erledigt" : ""));
+
+            // Kopf: Dringlichkeit + Astronaut + Zeit
+            const kopf = el("div", "bericht-kopf");
+            const titel = el("div", "sym-titel bericht-titel");
+            titel.append(el("span", "sym-symbol", stufe.symbol), stufe.titel);
+            const info = el("div", "bericht-info");
+            info.append(
+                el("strong", "", b.astronautName),
+                el("span", "klein", datumFormatieren(b.timestamp))
+            );
+            kopf.append(titel, info);
+            karte.appendChild(kopf);
+
+            // Symptome mit Ursache und Tipp
+            const ul = el("ul", "sym-liste");
+            for (const id of b.symptome || []) {
+                const s = symptom(id);
+                const li = el("li");
+                li.append(el("b", "", s.name + ": "),
+                    s.ursache ? "meist " + s.ursache + ". Tipp: " + s.tipp + "." : "");
+                ul.appendChild(li);
+            }
+            karte.appendChild(ul);
+
+            // Fuß: Status + Knöpfe
+            const fuss = el("div", "bericht-fuss");
+            if (b.erledigt) {
+                fuss.appendChild(el("span", "badge ja", "Erledigt" + (b.erledigt_am ? " · " + datumFormatieren(b.erledigt_am) : "")));
+            } else {
+                fuss.appendChild(el("span", "badge nein", "Offen"));
+            }
+
+            const verlauf = el("a", "", "Werte im Verlauf ansehen");
+            verlauf.href = "verlauf.html";
+            verlauf.addEventListener("click", () => {
+                try { localStorage.setItem("verlaufAstronaut", b.astronautName); } catch (e) {}
+            });
+
+            const knopf = el("button", b.erledigt ? "secondary outline" : "", b.erledigt ? "Wieder öffnen" : "Als erledigt markieren");
+            knopf.type = "button";
+            knopf.addEventListener("click", () => erledigtSetzen(b.id, !b.erledigt, knopf));
+
+            fuss.append(verlauf, knopf);
+            karte.appendChild(fuss);
+            return karte;
+        }
+
+        // ---------- Aktionen ----------
+        async function erledigtSetzen(id, erledigt, knopf) {
+            knopf.disabled = true;
+            knopf.setAttribute("aria-busy", "true");
+            try {
+                const antwort = await fetch("../php/symptome.php", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ aktion: "erledigt", id, erledigt })
+                });
+                const ergebnis = await antwort.json();
+                if (!antwort.ok) throw new Error(ergebnis.error || "HTTP " + antwort.status);
+                await laden(true);
+            } catch (e) {
+                knopf.disabled = false;
+                knopf.removeAttribute("aria-busy");
+                alert("Konnte nicht gespeichert werden: " + e.message);
+            }
+        }
+
+        // ---------- Daten laden (alle 5 Sekunden) ----------
+        async function laden(erzwingen = false) {
+            const fehler = document.getElementById("fehler");
+            try {
+                const antwort = await fetch("../php/symptome.php?api=1", { cache: "no-store" });
+                if (!antwort.ok) throw new Error("HTTP " + antwort.status);
+                const text = await antwort.text();
+                fehler.hidden = true;
+                document.getElementById("aktualisiert").textContent = new Date().toLocaleTimeString("de-DE");
+                if (text === letzterStand && !erzwingen) return;
+                letzterStand = text;
+                alleBerichte = JSON.parse(text);
+
+                // Astronauten-Filter mit allen Namen füllen, die vorkommen
+                const auswahl = document.getElementById("filterAstronaut");
+                const vorher = auswahl.value;
+                const namen = [...new Set(alleBerichte.map(b => b.astronautName))].sort();
+                auswahl.replaceChildren(el("option", "", "Alle"), ...namen.map(n => el("option", "", n)));
+                auswahl.options[0].value = "";
+                if (namen.includes(vorher)) auswahl.value = vorher;
+
+                zeichnen();
+            } catch (e) {
+                fehler.textContent = "Berichte konnten nicht geladen werden (läuft der PHP-Server?): " + e.message;
+                fehler.hidden = false;
+            }
+        }
+
+        // Link aus der Auswertung: flugarzt.html?astronaut=Neil%20Armstrong
+        const ausLink = new URLSearchParams(location.search).get("astronaut");
+
+        document.getElementById("filterAstronaut").addEventListener("change", zeichnen);
+        document.getElementById("filterStatus").addEventListener("change", zeichnen);
+
+        laden().then(() => {
+            if (ausLink) {
+                const auswahl = document.getElementById("filterAstronaut");
+                if ([...auswahl.options].some(o => o.value === ausLink)) {
+                    auswahl.value = ausLink;
+                    zeichnen();
+                }
+            }
+        });
+        setInterval(laden, 5000);
+    </script>
+    <script src="layout.js"></script>
+</body>
+
+</html>

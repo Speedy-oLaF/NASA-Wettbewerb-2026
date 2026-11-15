@@ -1,5 +1,58 @@
 
 <?php
+
+
+// Rückgängig-Funktion
+if (isset($_POST['action']) && $_POST['action'] === 'undo') {
+
+    $astronaut = $_POST['astronaut'] ?? '';
+    $timestamp = $_POST['timestamp'] ?? '';
+
+    $dateien = [
+        "Glover" => "glover",
+        "Hansen" => "hansen",
+        "Koch" => "koch",
+        "Wiseman" => "wiseman"
+    ];
+
+    if (isset($dateien[$astronaut]) && $timestamp !== '') {
+
+        $file = __DIR__ . "/../../python/Astronauten/send_data_"
+              . $dateien[$astronaut] . ".json";
+
+        if (file_exists($file)) {
+
+            $all_data = json_decode(file_get_contents($file), true) ?? [];
+
+            // Genau den gerade gespeicherten Datensatz entfernen
+            $all_data = array_values(array_filter($all_data, function ($entry) use ($timestamp) {
+                return ($entry['timestamp'] ?? '') !== $timestamp;
+            }));
+
+            file_put_contents(
+                $file,
+                json_encode($all_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+            );
+        }
+    }
+
+    $zurueck = $_POST['return_url'] ?? '../sides/vitalMeasurements.html';
+
+    // Nur lokale relative Pfade erlauben
+    if (
+        str_starts_with($zurueck, '/') ||
+        str_starts_with($zurueck, 'http')
+    ) {
+        $zurueck = '../sides/vitalMeasurements.html';
+    }
+
+    header("Location: " . $zurueck);
+    exit;
+}
+
+
+
+
 $data = $_POST;
 
 $send_data = []; 
@@ -59,15 +112,38 @@ file_put_contents(
 <html lang="en">
 
 <head>
-    <link rel="stylesheet" href="../css/design.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='../css/design.css') }}">
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/pico.min.css') }}">    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Main</title>
+    <style>
+        nav ul {
+            display: flex;
+            background-color: #2b2d2e;
+            gap: 0px;
+            border: 1px solid #343738;
+        }
 
+        #buttons-tr {
+            display: flex;
+            width: 100%;
+            gap: 5px;
+        }
+
+        #buttons-tr td {
+            flex: 1;
+            display: flex;
+        }
+
+        #buttons-tr td button {
+            width: 100%;
+            flex: 1;
+        }
+
+    </style>
 </head>
 
 <body>
@@ -84,9 +160,10 @@ file_put_contents(
                         <li><a href="../index.html">Home</a></li>
                         <li><a href="../sides/vitalMeasurements.html">Messen</a></li>
                         <li><a href="auswertung.php">Auswertung</a></li>
-                        <li><a href="../sides/symthome.html">Symptome</a></li>
+                        <li><a href="../sides/symptome.html">Symptome</a></li>
                         <li><a href="../sides/verlauf.html">Verlauf</a></li>
                         <li><a href="../sides/training.html">Training</a></li>
+                        <li><a href="../sides/flugarzt.html">Flugarzt</a></li>
                     </ul>
                 </aside>
             </nav>
@@ -94,26 +171,6 @@ file_put_contents(
 
             <main class="main">
                 <article>
-                    <h3>CRITICAL Data:</h3>
-                    <table>
-                        <?php foreach ($critical_data as $key => $value): ?>
-                            <?php if (is_array($value)): ?>
-                                <?php foreach ($value as $element): ?>
-                                    <tr>
-                                        <td>
-                                            <?= htmlspecialchars(
-                                                is_array($element)
-                                                    ? print_r($element, true)
-                                                    : (string)$element
-                                            ) ?>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        <?php endforeach; ?>
-                    </table>
-
-
                     <h3>This Data will be pushed:</h3>
                     <table>
                         <?php foreach ($send_data as $key => $value): ?>
@@ -133,7 +190,27 @@ file_put_contents(
                         <?php endforeach; ?>
                     </table>      
                 </article>
-                <button type="button" onclick="history.back()">Zurück</button>
+                <table>
+                    <tr id="buttons-tr">
+                        <td>
+                            <form method="POST">
+                                <input type="hidden" name="action" value="undo">
+
+                                <input type="hidden" name="astronaut"
+                                    value="<?= htmlspecialchars($send_data['Astronaut-Name']) ?>">
+
+                                <input type="hidden" name="timestamp"
+                                    value="<?= htmlspecialchars($send_data['timestamp']) ?>">
+
+                                <input type="hidden" name="return_url"
+                                    value="../sides/vitalMeasurements.html">
+
+                                <button type="submit">Zurück</button>
+                            </form>
+                        </td>
+                        <td><button type="button" onclick="window.location.href='auswertung.php'">Auswerten</button></td>
+                    </tr>
+                </table>
                  <h2>Gesendete Daten</h2>
                 <pre>
                 <?php print_r($send_data); ?>
@@ -154,6 +231,7 @@ file_put_contents(
 
 
     </div>
+    <script src="../sides/layout.js"></script>
 </body>
 
 </html>

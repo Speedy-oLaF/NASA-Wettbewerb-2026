@@ -2,7 +2,8 @@
 <html lang="en">
 
 <head>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/pico.min.css') }}">    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,7 +37,7 @@
 
         .wrapper {
             display: grid;
-            min-height: 100vh;
+
             grid-template-columns: 1fr;
             grid-template-rows: auto auto 1fr auto;
             grid-template-areas:
@@ -55,17 +56,11 @@
 
         nav ul {
             display: flex;
-            flex-direction: column;
-            gap: 40px;
             background-color: #2b2d2e;
-            padding: 30px;
-            border-radius: 15px;
+            gap: 0px;
             border: 1px solid #343738;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            margin: 0 auto;
-            max-width: 500px;
         }
+
 
         .main {
             grid-area: main;
@@ -94,7 +89,6 @@
         /* ---------- nur für Diagramm und Tabelle ---------- */
         /* Menü immer sichtbar: Menü behält seine Breite, Inhalt nimmt den Rest
            und wird nicht von der breiten Tabelle aus dem Bild geschoben */
-        .nav { flex: none; width: 150px; }
         .main { flex: 1; min-width: 0; grid-template-columns: minmax(0, 1fr); }
         .main > * { min-width: 0; }
         .klein { font-size: 0.85rem; color: var(--pico-muted-color); }
@@ -138,12 +132,13 @@
             <nav class="nav">
                 <aside>
                     <ul>
-                        <li><a href="index.html">Home</a></li>
-                        <li><a href="sides/vitalMeasurements.html">Messen</a></li>
-                        <li><a href="sides/auswertung.html">Auswertung</a></li>
-                        <li><a href="sides/symthome.html">Symptome</a></li>
-                        <li><a href="sides/verlauf.html">Verlauf</a></li>
-                        <li><a href="sides/training.html">Training</a></li>
+                        <li><a href="../index.html">Home</a></li>
+                        <li><a href="vitalMeasurements.html">Messen</a></li>
+                        <li><a href="../php/auswertung.php">Auswertung</a></li>
+                        <li><a href="symptome.html">Symptome</a></li>
+                        <li><a href="verlauf.html">Verlauf</a></li>
+                        <li><a href="training.html">Training</a></li>
+                        <li><a href="flugarzt.html">Flugarzt</a></li>
                     </ul>
                 </aside>
             </nav>
@@ -216,7 +211,14 @@
             sport:                    { label: "Sport",                    einheit: "h" },
             ernaehrung:               { label: "Nutrition",                einheit: "kcal" },
             strahlungsbelastung:      { label: "Radiation",                einheit: "mSv" },
+            gewicht:                  { label: "Weight",                   einheit: "kg" },
         };
+
+        // Anfangswert: aus der Messung selbst, sonst erste Messung des Astronauten mit Wert
+        function ersterWert(alle, feld) {
+            const m = (alle || []).find(x => zahlOderNull(x[feld]) !== null);
+            return m ? m[feld] : null;
+        }
 
         function wertLabel(schluessel) {
             return WERTE[schluessel] ? WERTE[schluessel].label : schluessel;
@@ -272,11 +274,11 @@
               grenzen: { innen: [[6, null]], aussen: [[7, null]] } },
 
             { id: "knochendichte", label: "Bone density (of initial)", einheit: "%",
-              serien: [{ name: "Bone density", wert: m => prozentVon(m.knochendichte, m.anfangs_knochendichte) }],
+              serien: [{ name: "Bone density", wert: (m, _, alle) => prozentVon(m.knochendichte, m.anfangs_knochendichte ?? ersterWert(alle, "knochendichte")) }],
               grenzen: { innen: [[90, null]], aussen: [[95, null]] } },
 
             { id: "muskelkraft", label: "Muscle strength (of initial)", einheit: "%",
-              serien: [{ name: "Muscle strength", wert: m => prozentVon(m.muskelkraft, m.ausgangswert_muskelkraft) }],
+              serien: [{ name: "Muscle strength", wert: (m, _, alle) => prozentVon(m.muskelkraft, m.ausgangswert_muskelkraft ?? ersterWert(alle, "muskelkraft")) }],
               grenzen: { innen: [[80, null]], aussen: [[90, null]] } },
 
             { id: "sport", label: "Sport", einheit: "h",
@@ -320,7 +322,7 @@
         const SPALTEN = [
             "herzfrequenz", "blutdruck", "koerpertemperatur", "sauerstoffsaettigung",
             "schlafdauer", "knochendichte", "anfangs_knochendichte", "muskelkraft",
-            "ausgangswert_muskelkraft", "sport", "ernaehrung", "strahlungsbelastung",
+            "ausgangswert_muskelkraft", "sport", "ernaehrung", "strahlungsbelastung", "gewicht",
         ];
 
         let alleDaten = {};
@@ -449,9 +451,9 @@
             const innen = imBereich(wert, grenzeInnen);
             const aussen = imBereich(wert, grenzeAussen);
             if (wert === null || (innen && aussen)) return { art: "ok", text: "" };
-            if (innen)  return { art: "warnung",  text: "  ⚠ safe inside only" };
-            if (aussen) return { art: "warnung",  text: "  ⚠ safe outside only" };
-            return { art: "kritisch", text: "  ⚠ unsafe inside and outside" };
+            if (innen)  return { art: "warnung",  text: "  ⚠ safe Raumstation only" };
+            if (aussen) return { art: "warnung",  text: "  ⚠ safe Montstation only" };
+            return { art: "kritisch", text: "  ⚠ unsafe Raumstation and Montstation" };
         }
 
         const PUNKT = {
@@ -469,7 +471,7 @@
                 kennzahl.label + " (" + kennzahl.einheit + ")";
             document.getElementById("diagrammUntertitel").textContent =
                 (document.getElementById("astronautAuswahl").value || "No data loaded") +
-                " · safe ranges for working inside and outside";
+                " · safe ranges for working Raumstation and Montstation";
 
             const labels = messungen.map(m => kurzesDatum(m.timestamp));
 
@@ -542,7 +544,7 @@
                         callbacks: {
                             title: items => {
                                 const m = messungen[items[0].dataIndex];
-                                const ort = m.bereich == 1 ? "measured inside" : m.bereich == 2 ? "measured outside" : "";
+                                const ort = m.bereich == 1 ? "measured Raumstation" : m.bereich == 2 ? "measured Montstation" : "";
                                 return datumFormatieren(m.timestamp) + (ort ? "  ·  " + ort : "");
                             },
                             label: item => {
@@ -583,10 +585,10 @@
             if (kennzahl.serien.length > 1) {
                 kennzahl.serien.forEach((s, i) => teile.push(eintrag("", FARBEN.serien[i], s.name)));
             }
-            teile.push(eintrag("band", null, "Safe range inside"));
-            teile.push(eintrag("gestrichelt", null, "Safe range outside"));
+            teile.push(eintrag("band", null, "Safe range Raumstation"));
+            teile.push(eintrag("gestrichelt", null, "Safe range Montstation"));
             teile.push(eintrag("raute", FARBEN.warnung, "Safe for only one"));
-            teile.push(eintrag("dreieck", FARBEN.kritisch, "Unsafe inside and outside"));
+            teile.push(eintrag("dreieck", FARBEN.kritisch, "Unsafe Raumstation and Montstation"));
             if (anzahlWerte === 0) teile.push(zelle("span", "No values recorded for this yet."));
 
             legende.replaceChildren(...teile);
@@ -602,7 +604,7 @@
             const messungen = aktuelleMessungen().reverse();   // neueste zuerst
             const zeilen = messungen.map(m => {
                 const tr = document.createElement("tr");
-                const ort = m.bereich == 1 ? "Inside" : m.bereich == 2 ? "Outside" : "–";
+                const ort = m.bereich == 1 ? "Raumstation" : m.bereich == 2 ? "Montstation" : "–";
                 tr.append(zelle("td", datumFormatieren(m.timestamp)), zelle("td", ort));
                 for (const s of SPALTEN) {
                     const wert = m[s];
@@ -624,15 +626,36 @@
         // Akzeptiert: Liste von Messungen (send_data_*.json, Test-Dateien),
         // { "Name": [Messungen] } (pushedHealthData.php) und das alte
         // verschachtelte Format mit "Astronaut-Name" / "Measurement-Location".
+        const FORMULAR_FELDER = {
+            "BPM":                     "herzfrequenz",
+            "Bodytemperature":         "koerpertemperatur",
+            "Oxygen-Saturation":       "sauerstoffsaettigung",
+            "Sleep-Duration":          "schlafdauer",
+            "Bone-Density":            "knochendichte",
+            "Initial-Bone-Density":    "anfangs_knochendichte",
+            "Muscle-Strength":         "muskelkraft",
+            "Initial-Muscle-Strength": "ausgangswert_muskelkraft",
+            "Sport-Duration":          "sport",
+            "Radiation-Exposure":      "strahlungsbelastung",
+            "Weight":                  "gewicht",
+        };
+
         function messungHinzufuegen(ziel, m) {
             if (!m || typeof m !== "object" || !m.timestamp) return;
             const eintrag = { ...m };
             if (!eintrag.astronautName && eintrag["Astronaut-Name"]) eintrag.astronautName = eintrag["Astronaut-Name"];
             if (eintrag.bereich === undefined && eintrag["Measurement-Location"]) {
-                eintrag.bereich = eintrag["Measurement-Location"] === "Inside" ? 1 : 2;
+                eintrag.bereich = eintrag["Measurement-Location"] === "Raumstation" ? 1 : 2;
             }
             if (eintrag.sauerstoffsaettigung === undefined && eintrag.sauerstoffsaetigung !== undefined) {
                 eintrag.sauerstoffsaettigung = eintrag.sauerstoffsaetigung;
+            }
+            // Feldnamen aus dem Formular (vitalMeasurements.html -> pushedHealthData.php)
+            for (const [formular, intern] of Object.entries(FORMULAR_FELDER)) {
+                if (eintrag[intern] === undefined && eintrag[formular] !== undefined) eintrag[intern] = eintrag[formular];
+            }
+            if (eintrag.blutdruck === undefined && (eintrag.Systole !== undefined || eintrag.Diastole !== undefined)) {
+                eintrag.blutdruck = (eintrag.Systole ?? "–") + "/" + (eintrag.Diastole ?? "–");
             }
             const name = eintrag.astronautName || "Unknown";
             (ziel[name] = ziel[name] || []).push(eintrag);
@@ -669,21 +692,28 @@
         // Daten immer aus Python/Astronauten/send_data_<nachname>.json
         // (Pfad relativ zur HTML-Datei: die HTML liegt im Projektordner neben "Python")
         async function automatischLaden() {
-            const ordner = "Python/Astronauten/";
+            // verlauf.html liegt in Website/sides/, die Daten in Python/Astronauten/
+            const ordner = "../../Python/Astronauten/";
             const fehler = document.getElementById("fehler");
-            const neueDaten = {};
-            for (const n of ["wiseman", "glover", "koch", "hansen"]) {
+            // alle Astronauten immer in der Auswahl, auch ohne Messungen
+            const ASTRONAUTEN = ["Glover", "Hansen", "Koch", "Wiseman"];
+            const neueDaten = Object.fromEntries(ASTRONAUTEN.map(n => [n, []]));
+            let geladen = 0;
+            for (const n of ASTRONAUTEN) {
                 try {
-                    const antwort = await fetch(ordner + "send_data_" + n + ".json", { cache: "no-store" });
-                    if (antwort.ok) jsonEinlesen(await antwort.json(), neueDaten);
+                    const antwort = await fetch(ordner + "send_data_" + n.toLowerCase() + ".json", { cache: "no-store" });
+                    if (!antwort.ok) continue;
+                    geladen++;
+                    const text = (await antwort.text()).trim();
+                    if (text) jsonEinlesen(JSON.parse(text), neueDaten);   // leere Datei = keine Messungen
                 } catch (e) {}
             }
-            if (Object.keys(neueDaten).length) {
+            datenAnzeigen(neueDaten);
+            if (geladen) {
                 fehler.hidden = true;
-                datenAnzeigen(neueDaten);
             } else {
                 fehler.textContent = "Could not load " + ordner + "send_data_*.json " +
-                    "(start a web server on the Desktop, e.g. python3 -m http.server).";
+                    "(open the page via XAMPP, e.g. http://localhost/Website/sides/verlauf.html).";
                 fehler.hidden = false;
             }
         }
@@ -715,6 +745,7 @@
         allesZeichnen();
         automatischLaden();
     </script>
+    <script src="layout.js"></script>
 </body>
 
 
