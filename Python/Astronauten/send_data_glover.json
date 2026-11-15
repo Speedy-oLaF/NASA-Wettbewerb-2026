@@ -56,5 +56,18 @@
         "Vitamin-D": "30",
         "Vitamin-E": "03",
         "Vitamin-K": "30"
+    },
+    {
+        "timestamp": "2026-11-15T23:25:59+01:00",
+        "Astronaut-Name": "Glover",
+        "BPM": "92",
+        "Systole": "130",
+        "Diastole": "90",
+        "Bodytemperature": "37.9",
+        "Oxygen-Saturation": "100",
+        "Weight": "80",
+        "Sleep-Duration": "3",
+        "Sport-Duration": "7",
+        "Radiation-Exposure": "0.1"
     }
 ]
