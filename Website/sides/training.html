@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 
 <head>
-    <link rel="stylesheet" href="../css/design.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='../css/design.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.6/css/pico.min.css">
+    <link rel="stylesheet" href="design.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='design.css') }}">
 
 
     <meta charset="UTF-8">
@@ -16,7 +16,7 @@
 <body>
     <div class="wrapper">
         <header class="header">
-            <h1>Training</h1>
+            <div><h1>Training</h1><p class="untertitel">Daily exercise plan, adapted to the latest measurement</p></div>
         </header>
 
 
@@ -26,10 +26,11 @@
                     <ul>
                         <li><a href="../index.html">Home</a></li>
                         <li><a href="vitalMeasurements.html">Messen</a></li>
-                        <li><a href="auswertung.html">Auswertung</a></li>
+                        <li><a href="../php/auswertung.php">Auswertung</a></li>
                         <li><a href="symthome.html">Symptome</a></li>
                         <li><a href="verlauf.html">Verlauf</a></li>
                         <li><a href="training.html">Training</a></li>
+                        <li><a href="flugarzt.html">Flugarzt</a></li>
                     </ul>
                 </aside>
             </nav>
@@ -37,16 +38,269 @@
 
             <main class="main">
 
-                <button class="button"><a href="vitalMeasurements.html">Start</a></button>
+                <div class="steuerung">
+                    <label for="astronautAuswahl">Astronaut
+                        <select id="astronautAuswahl"></select>
+                    </label>
+                </div>
+
+                <!-- Kennzahlen des gewählten Tages -->
+                <div class="kennzahl-reihe">
+                    <article class="kennzahl">
+                        <span class="kennzahl-label" id="fortschrittLabel">Today's progress</span>
+                        <span class="kennzahl-wert" id="fortschrittText">–</span>
+                        <div class="meter"><div class="meter-fuellung" id="fortschrittBalken"></div></div>
+                    </article>
+                    <article class="kennzahl">
+                        <span class="kennzahl-label">Planned training time</span>
+                        <span class="kennzahl-wert" id="dauerText">–</span>
+                        <span class="klein" id="dauerZiel">Goal: at least 1.5 h per day</span>
+                    </article>
+                    <article class="kennzahl">
+                        <span class="kennzahl-label">Last measurement</span>
+                        <span class="kennzahl-wert klein-wert" id="messungText">–</span>
+                        <span class="klein" id="messungSport"></span>
+                    </article>
+                </div>
+
+                <div id="hinweise" class="hinweise"></div>
+
+                <!-- Tagesplan -->
+                <article>
+                    <header class="plan-kopf">
+                        <strong id="planTitel">Today's plan</strong>
+                        <button type="button" class="outline secondary klein-knopf" id="zuruecksetzen">Reset</button>
+                    </header>
+                    <ul class="uebungen" id="uebungen"></ul>
+                </article>
+
+                <!-- Wochenplan: Klick auf einen Tag wählt ihn aus -->
+                <article>
+                    <header>
+                        <strong>Weekly schedule</strong>
+                        <span class="klein"> · click a day to select it</span>
+                    </header>
+                    <div class="woche" id="woche"></div>
+                </article>
+
+                <p id="fehler" hidden></p>
 
             </main>
 
         </div>
         <footer class="footer">
-            <p>© 2026 Health Monitoring Software</p>
+            <p>Health Monitoring Software · NASA Space Challenge 2026</p>
+            <p>Made by oLaF</p>
         </footer>
 
     </div>
+
+    <script src="werte.js"></script>
+    <script src="training.js"></script>
+    <script>
+        let alleDaten = {};
+        let aktuellerPlan = [];
+
+        function el(tag, klasse, text) {
+            const e = document.createElement(tag);
+            if (klasse) e.className = klasse;
+            if (text !== undefined) e.textContent = text;
+            return e;
+        }
+
+        // ---------- Datum ----------
+        // "2026-11-14" <-> Date (lokale Zeit, ohne Zeitzonen-Verschiebung)
+        function zuText(d) {
+            return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+        }
+
+        // Ausgewählter Tag (Standard: heute). Wird über den Wochenplan geändert.
+        let ausgewaehlt = new Date();
+
+        function gewaehlterTag() {
+            return new Date(ausgewaehlt);
+        }
+
+        function istHeute(d) {
+            return zuText(d) === zuText(new Date());
+        }
+
+        function tagSetzen(d) {
+            ausgewaehlt = new Date(d);
+            planZeichnen();
+        }
+
+        function tagesText(d) {
+            return d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+        }
+
+        // ---------- Abgehakte Übungen pro Astronaut und Tag merken ----------
+        function speicherSchluessel() {
+            return "training:" + document.getElementById("astronautAuswahl").value + ":" + zuText(gewaehlterTag());
+        }
+
+        function erledigteLaden() {
+            try { return new Set(JSON.parse(localStorage.getItem(speicherSchluessel()) || "[]")); }
+            catch (e) { return new Set(); }
+        }
+
+        function erledigteSpeichern(menge) {
+            try { localStorage.setItem(speicherSchluessel(), JSON.stringify([...menge])); } catch (e) {}
+        }
+
+        // ---------- Messung ----------
+        // Letzte Messung bis einschließlich zum gewählten Tag
+        function letzteMessung(name, tag) {
+            const ende = new Date(tag);
+            ende.setHours(23, 59, 59, 999);
+            const liste = (alleDaten[name] || []).filter(m => m.timestamp && new Date(m.timestamp) <= ende);
+            if (liste.length === 0) return null;
+            return liste.reduce((a, b) => (new Date(b.timestamp) > new Date(a.timestamp) ? b : a));
+        }
+
+        // ---------- Anzeige ----------
+        function hinweiseZeichnen(hinweise) {
+            const symbole = { warnung: "⚠", fokus: "◎", info: "ℹ", ok: "✓" };
+            document.getElementById("hinweise").replaceChildren(...hinweise.map(h => {
+                const p = el("p", "hinweis hinweis-" + h.art);
+                p.append(el("span", "hinweis-symbol", symbole[h.art] || "•"), el("span", "", h.text));
+                return p;
+            }));
+        }
+
+        function fortschrittAktualisieren() {
+            const erledigt = erledigteLaden();
+            const fertig = aktuellerPlan.filter(id => erledigt.has(id));
+            const minutenFertig = fertig.reduce((s, id) => s + UEBUNGEN[id].dauer, 0);
+            const prozent = aktuellerPlan.length ? Math.round(fertig.length / aktuellerPlan.length * 100) : 0;
+
+            document.getElementById("fortschrittText").textContent =
+                fertig.length + " / " + aktuellerPlan.length + " exercises · " + minutenFertig + " min";
+            const balken = document.getElementById("fortschrittBalken");
+            balken.style.width = prozent + "%";
+            balken.classList.toggle("fertig", prozent === 100);
+        }
+
+        function planZeichnen() {
+            const name = document.getElementById("astronautAuswahl").value;
+            const tag = gewaehlterTag();
+            const messung = letzteMessung(name, tag);
+            const { plan, hinweise, leichterTag } = planErstellen(messung, tag);
+            aktuellerPlan = plan;
+
+            hinweiseZeichnen(hinweise);
+
+            // Kennzahlen
+            document.getElementById("fortschrittLabel").textContent =
+                istHeute(tag) ? "Today's progress" : "Progress on " + tag.toLocaleDateString("de-DE");
+            const minuten = plan.reduce((s, id) => s + UEBUNGEN[id].dauer, 0);
+            document.getElementById("dauerText").textContent =
+                Math.floor(minuten / 60) + " h " + (minuten % 60) + " min";
+            document.getElementById("dauerZiel").textContent = leichterTag
+                ? "Light day – goal paused"
+                : "Goal: at least " + SPORT_ZIEL_STUNDEN + " h per day";
+            document.getElementById("messungText").textContent = messung ? datumFormatieren(messung.timestamp) : "No data yet";
+            const sport = messung ? zahlOderNull(messung.sport) : null;
+            document.getElementById("messungSport").textContent = sport !== null ? "Exercise recorded: " + sport + " h" : "";
+
+            document.getElementById("planTitel").textContent =
+                (istHeute(tag) ? "Today's plan" : "Plan for " + tagesText(tag)) +
+                (leichterTag ? " · light day" : "") + " · " + name;
+
+            // Übungsliste
+            const erledigt = erledigteLaden();
+            const eintraege = plan.map(id => {
+                const u = UEBUNGEN[id];
+                const li = el("li", "uebung" + (erledigt.has(id) ? " erledigt" : ""));
+
+                const box = el("input");
+                box.type = "checkbox";
+                box.id = "u-" + id;
+                box.checked = erledigt.has(id);
+                box.addEventListener("change", () => {
+                    const menge = erledigteLaden();
+                    box.checked ? menge.add(id) : menge.delete(id);
+                    erledigteSpeichern(menge);
+                    li.classList.toggle("erledigt", box.checked);
+                    fortschrittAktualisieren();
+                });
+
+                const text = el("label", "uebung-text");
+                text.htmlFor = box.id;
+                const zeile = el("span", "uebung-zeile");
+                zeile.append(el("strong", "", u.name), el("span", "tag", u.art));
+                text.append(
+                    zeile,
+                    el("span", "uebung-umfang", u.umfang + " · " + u.geraet),
+                    el("span", "klein", u.warum)
+                );
+
+                li.append(box, text);
+                return li;
+            });
+            document.getElementById("uebungen").replaceChildren(...eintraege);
+
+            fortschrittAktualisieren();
+            wocheZeichnen(tag);
+        }
+
+        function wocheZeichnen(tag) {
+            // Immer die aktuelle Woche (Montag bis Sonntag) anzeigen
+            const jetzt = new Date();
+            const montag = new Date(jetzt);
+            montag.setDate(jetzt.getDate() - ((jetzt.getDay() + 6) % 7));
+
+            document.getElementById("woche").replaceChildren(...[0, 1, 2, 3, 4, 5, 6].map(versatz => {
+                const d = new Date(montag);
+                d.setDate(montag.getDate() + versatz);
+                const t = WOCHE[d.getDay()];
+                const knopf = el("button", "wochentag" + (zuText(d) === zuText(tag) ? " heute" : ""));
+                knopf.type = "button";
+                knopf.append(
+                    el("span", "wochentag-name", t.tag + (istHeute(d) ? " · today" : "")),
+                    el("strong", "", t.fokus),
+                    el("span", "klein", t.text)
+                );
+                knopf.addEventListener("click", () => tagSetzen(d));
+                return knopf;
+            }));
+        }
+
+        // ---------- Daten laden ----------
+        async function laden() {
+            const fehler = document.getElementById("fehler");
+            try {
+                const antwort = await fetch("pushedHealthData.php?api=1", { cache: "no-store" });
+                if (!antwort.ok) throw new Error("HTTP " + antwort.status);
+                alleDaten = await antwort.json();
+
+                const auswahl = document.getElementById("astronautAuswahl");
+                let gemerkt = null;
+                try { gemerkt = localStorage.getItem("trainingAstronaut"); } catch (e) {}
+                auswahl.replaceChildren(...Object.keys(alleDaten).map(n => el("option", "", n)));
+                if (gemerkt && gemerkt in alleDaten) auswahl.value = gemerkt;
+            } catch (e) {
+                fehler.textContent = "Could not load measurements (is the PHP server running?): " + e.message;
+                fehler.hidden = false;
+            }
+            planZeichnen();
+        }
+
+        // ---------- Bedienung ----------
+        document.getElementById("astronautAuswahl").addEventListener("change", e => {
+            try { localStorage.setItem("trainingAstronaut", e.target.value); } catch (x) {}
+            planZeichnen();
+        });
+
+        document.getElementById("zuruecksetzen").addEventListener("click", () => {
+            erledigteSpeichern(new Set());
+            planZeichnen();
+        });
+
+        laden();
+    </script>
+    <script src="layout.js"></script>
+
 </body>
 
 

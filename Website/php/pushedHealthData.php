@@ -6,18 +6,42 @@ $send_data = [];
 $send_data["timestamp"] = date("c");
 $non_send_data = [];
 
+
+
+
+
+
+
 foreach ($data as $key => $value) {
 
-    if ($value === null || $value === "") {
+    if ($value === null or $value === "Not-Measured" || $value === "") {
         $non_send_data[$key] = $value;
     } else {
         $send_data[$key] = $value;
     }
 }
 
+
+
 $json = json_encode($send_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-//AI-Used till line 29
-$file = __DIR__ . "/../../python/send_data.json";
+
+
+if ($send_data["Astronaut-Name"] === "Glover") {
+    $file = __DIR__ . "/../../python/Astronauten/send_data_glover.json";
+    $returned_critical_data = file_get_contents("../../python/Astronauten/critical_data_glover.json");
+} elseif ($send_data["Astronaut-Name"] === "Hansen") {
+    $file = __DIR__ . "/../../python/Astronauten/send_data_hansen.json";
+    $returned_critical_data = file_get_contents("../../python/Astronauten/critical_data_hansen.json");
+} elseif ($send_data["Astronaut-Name"] === "Koch") {
+    $file = __DIR__ . "/../../python/Astronauten/send_data_koch.json";
+    $returned_critical_data = file_get_contents("../../python/Astronauten/critical_data_koch.json");
+} elseif ($send_data["Astronaut-Name"] === "Wiseman") {
+    $file = __DIR__ . "/../../python/Astronauten/send_data_wiseman.json";
+    $returned_critical_data = file_get_contents("../../python/Astronauten/critical_data_wiseman.json");
+}
+
+$critical_data = json_decode($returned_critical_data, true);
+
 
 $all_data = json_decode(file_get_contents($file), true);
 
@@ -27,6 +51,8 @@ file_put_contents(
     $file,
     json_encode($all_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
 );
+
+
 ?>
 
 <!DOCTYPE html>
@@ -57,7 +83,7 @@ file_put_contents(
                     <ul>
                         <li><a href="../index.html">Home</a></li>
                         <li><a href="../sides/vitalMeasurements.html">Messen</a></li>
-                        <li><a href="../sides/auswertung.html">Auswertung</a></li>
+                        <li><a href="auswertung.php">Auswertung</a></li>
                         <li><a href="../sides/symthome.html">Symptome</a></li>
                         <li><a href="../sides/verlauf.html">Verlauf</a></li>
                         <li><a href="../sides/training.html">Training</a></li>
@@ -68,6 +94,26 @@ file_put_contents(
 
             <main class="main">
                 <article>
+                    <h3>CRITICAL Data:</h3>
+                    <table>
+                        <?php foreach ($critical_data as $key => $value): ?>
+                            <?php if (is_array($value)): ?>
+                                <?php foreach ($value as $element): ?>
+                                    <tr>
+                                        <td>
+                                            <?= htmlspecialchars(
+                                                is_array($element)
+                                                    ? print_r($element, true)
+                                                    : (string)$element
+                                            ) ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </table>
+
+
                     <h3>This Data will be pushed:</h3>
                     <table>
                         <?php foreach ($send_data as $key => $value): ?>
@@ -87,6 +133,7 @@ file_put_contents(
                         <?php endforeach; ?>
                     </table>      
                 </article>
+                <button type="button" onclick="history.back()">Zurück</button>
                  <h2>Gesendete Daten</h2>
                 <pre>
                 <?php print_r($send_data); ?>
@@ -104,8 +151,9 @@ file_put_contents(
             <p>© 2026 Health Monitoring Software</p>
         </footer>
 
+
+
     </div>
 </body>
-
 
 </html>

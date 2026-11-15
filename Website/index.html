@@ -26,10 +26,10 @@
                     <ul>
                         <li><a href="index.html">Home</a></li>
                         <li><a href="sides/vitalMeasurements.html">Messen</a></li>
-                        <li><a href="sides/auswertung.html">Auswertung</a></li>
+                        <li><a href="php/auswertung.php">Auswertung</a></li>
                         <li><a href="sides/symthome.html">Symptome</a></li>
                         <li><a href="sides/verlauf.html">Verlauf</a></li>
-                        <li><a href="sides/training.html">Training</a></li>
+                        <li><a href="training.html">Training</a></li>
                     </ul>
                 </aside>
             </nav>
@@ -47,6 +47,62 @@
         </footer>
 
     </div>
+
+<script>
+
+// Einstellungen
+const TIMER_DURATION = 23 * 60 * 60 * 1000;
+
+// Gespeicherten Startzeitpunkt laden
+let startTime = localStorage.getItem("healthTimerStart");
+
+// Falls noch kein Timer existiert:
+if (!startTime) {
+    startTime = Date.now();
+    localStorage.setItem("healthTimerStart", startTime);
+}
+
+const timerDisplay = document.getElementById("timer");
+const resetButton = document.getElementById("resetTimer");
+
+// Timer aktualisieren
+function updateTimer() {
+
+    const elapsed = Date.now() - Number(startTime);
+    let remaining = TIMER_DURATION - elapsed;
+
+    if (remaining <= 0) {
+        timerDisplay.textContent = "00:00:00";
+        return;
+    }
+
+    const hours = Math.floor(remaining / 3600000);
+    const minutes = Math.floor((remaining % 3600000) / 60000);
+    const seconds = Math.floor((remaining % 60000) / 1000);
+
+    timerDisplay.textContent =
+        String(hours).padStart(2, "0") + ":" +
+        String(minutes).padStart(2, "0") + ":" +
+        String(seconds).padStart(2, "0");
+}
+
+// Reset-Funktion
+resetButton.addEventListener("click", function() {
+
+    startTime = Date.now();
+
+    localStorage.setItem("healthTimerStart", startTime);
+
+    updateTimer();
+
+});
+
+// Jede Sekunde aktualisieren
+updateTimer();
+setInterval(updateTimer, 1000);
+
+</script>
+
 </body>
 
 

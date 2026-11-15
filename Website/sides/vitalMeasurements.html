@@ -26,7 +26,7 @@
           <ul>
             <li><a href="../index.html">Home</a></li>
             <li><a href="vitalMeasurements.html">Messen</a></li>
-            <li><a href="auswertung.html">Auswertung</a></li>
+            <li><a href="../php/auswertung.php">Auswertung</a></li>
             <li><a href="symthome.html">Symptome</a></li>
             <li><a href="verlauf.html">Verlauf</a></li>
             <li><a href="training.html">Training</a></li>
@@ -36,29 +36,30 @@
 
       <main class="main">
         <form action="../php/pushedHealthData.php" method="post">
-            <label for="Astronaut-Name">Astronaut</label>
-            <select name="Astronaut-Name" id="astronautName">
-                <option>Neil Armstrong</option>
-                <option>Donald Trump</option>
-                <option>Vladimir Putin</option>
+            <label for="Astronaut-Name"><h3>Astronaut Name</h3></label>
+            <select name="Astronaut-Name" id="Astronaut-Name" required>
+                <option value="Glover">Glover</option>
+                <option value="Hansen">Hansen</option>
+                <option value="Koch">Koch</option>
+                <option value="Wiseman">Wiseman</option>
             </select>
 
             <label><h3>Physical Health</h3></label>
 
 
             <label for="BPM">Heart rate (bpm)</label>
-            <input name="BPM" type="text" id="bpm" >
+            <input name="BPM" type="number" id="bpm" max="300" min="0" required>
             
             <table>
               <tr>
                 <label>Blood pressure (mmHg)</label>
                 <td>
                   <label for="Systole">Systole</label>
-                  <input name="Systole" type="number" id="systole" placeholder="120" >
+                  <input name="Systole" type="number" id="systole" placeholder="120" max="300" min="0" required>
                 </td>
                 <td>
                   <label for="Diastole">Diastole</label>
-                  <input name="Diastole" type="number" id="diastole" placeholder="80" >
+                  <input name="Diastole" type="number" id="diastole" placeholder="80" max="200" min="0" required>
                 </td>
               </tr>
             </table>
@@ -68,28 +69,25 @@
             
 
             <label for="Bodytemperature">Body temperature (°C)</label>
-            <input name="Bodytemperature" type="number" step="0.1" id="koerpertemperatur" >
+            <input name="Bodytemperature" type="number" step="0.1" id="koerpertemperatur" min="0" max="50" required>
 
             <label for="Oxygen-Saturation">Oxygen saturation (%)</label>
-            <input name="Oxygen-Saturation" type="number" id="sauerstoffsaettigung" >
+            <input name="Oxygen-Saturation" type="number" id="sauerstoffsaettigung" max="100" min="0" required>
+
+            <label for="Weight">Weight (kg)</label>
+            <input name="Weight" type="number" id="weight" max="200" min="0" required>
 
             <label for="Sleep-Duration">Sleep duration (hours)</label>
-            <input name="Sleep-Duration" type="number" step="0.1" id="schlafdauer" >
+            <input name="Sleep-Duration" type="number" step="0.1" id="schlafdauer" min="0" max="24" required>
 
             <label for="Bone-Density">Bone density (g/cm²)</label>
             <input name="Bone-Density" type="number" step="0.01" id="knochendichte" >
 
-            <label for="Initial-Bone-Density">Initial bone density (g/cm²)</label>
-            <input name="Initial-Bone-Density" type="number" step="0.01" id="anfangs_knochendichte" >
-
             <label for="Muscle-Strength">Muscle strength (N)</label>
-            <input name="Muscle-Strength" type="number" id="muskelkraft" >
-
-            <label for="Initial-Muscle-Strength">Initial muscle strength (N)</label>
-            <input name="Initial-Muscle-Strength" type="number" id="ausgangswert_muskelkraft" >
+            <input name="Muscle-Strength" type="number" id="muskelkraft">
 
             <label for="Sport-Duratuion">Sport duration (hours)</label>
-            <input name="Sport-Duration" type="number" step="0.1" id="sport" >
+            <input name="Sport-Duration" type="number" step="0.1" id="sport" required>
             
 
             
@@ -97,22 +95,18 @@
        
             
             <label for="Radiation-Exposure">Radiation exposure (mSv)</label>
-            <input name="Radiation-Exposure" type="number" step="0.01" id="strahlungsbelastung" required>
+            <input name="Radiation-Exposure" type="number" step="0.01" id="Radiation-Exposure">
     
             <label for="Measurement-Location">Measurement location</label>                
-            <select name="Measurement-Location" id="bereich" required>
+            <select name="Measurement-Location" id="Measurement-Location">
+              <option value="Not-Measured">Not Measured</option>
                 <option value="Inside">Inside</option>
                 <option value="Outside">Outside</option>
             </select>
 
             <button id="healthValues" type="submit"><h3>Submit</h3></button>
         </form>
-        
-
-
-
       </main> 
-
     </div>
 
     <footer class="footer">

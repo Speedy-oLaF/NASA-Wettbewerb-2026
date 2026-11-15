@@ -1,104 +1,126 @@
 import json
 import os
-import subprocess
-import sys
-
-ordner = os.path.dirname(os.path.abspath(__file__))
-
-# Neuesten Datensatz von send_data.py holen
-ausgabe = subprocess.run(
-    [sys.executable, os.path.join(ordner, "send_data.py")],
-    capture_output=True, text=True
-).stdout
-daten = json.loads(ausgabe)
+import time
+from datetime import datetime
 
 
-def wert(key):
-    """Gibt den Wert als Zahl zurück, oder None, wenn er fehlt/ungültig ist."""
-    try:
-        return float(daten[key])
-    except (KeyError, ValueError, TypeError):
-        return None
 
 
-# ---------- Einzelne Prüfungen ----------
-# Jede Funktion gibt eine Warnung (Text) oder None zurück.
+folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Astronauten")
 
-def pruefe_bpm(bpm):
-    if bpm < 50 or bpm >3120:
-        return f"Puls auffällig: {bpm:g} BPM"
-
-def pruefe_blutdruck(sys_, dia):
-    if sys_ > 145 or dia > 90:
-        return f"Blutdruck zu hoch: {sys_:g}/{dia:g}"
-    if sys_ < 100 or dia < 68:
-        return f"Blutdruck zu niedrig: {sys_:g}/{dia:g}"
-
-def pruefe_temperatur(t):
-    if t < 38.5 or t > 38:
-        return f"Erhöhte Temperatur: {t:g} °C"
-    if t > 38.5:
-        return f"Fieber: {t:g} °C"
-    if t < 37:
-        return f"Unterkühlung: {t:g} °C"
-
-def pruefe_sauerstoff(o2):
-    if o2 < 95:
-        return f"Sauerstoffsättigung zu niedrig: {o2:g} %"
-
-def pruefe_schlaf(h):
-    if h < 6:
-        return f"Zu wenig Schlaf: {h:g} h"
-
-def pruefe_knochen(aktuell, anfang):
-    if anfang > 0 and aktuell < anfang * 0.9:
-        return f"Knochendichte um {(1 - aktuell / anfang) * 100:.0f} % gesunken"
-
-def pruefe_muskeln(aktuell, anfang):
-    if anfang > 0 and aktuell < anfang * 0.9:
-        return f"Muskelkraft um {(1 - aktuell / anfang) * 100:.0f} % gesunken"
-
-def pruefe_strahlung(s):
-    if s > 1:
-        return f"Strahlenbelastung hoch: {s:g}"
-
-
-# Welche Prüfung braucht welche Felder?
-pruefungen = [
-    (["BPM"],                              pruefe_bpm),
-    (["Systole", "Diastole"],              pruefe_blutdruck),
-    (["Bodytemperature"],                  pruefe_temperatur),
-    (["Oxygen-Saturation"],                pruefe_sauerstoff),
-    (["Sleep-Duration"],                   pruefe_schlaf),
-    (["Bone-Density", "Initial-Bone-Density"],         pruefe_knochen),
-    (["Muscle-Strength", "Initial-Muscle-Strength"],   pruefe_muskeln),
-    (["Radiation-Exposure"],               pruefe_strahlung),
+files = [
+    ("send_data_glover.json", "critical_data_glover.json"),
+    ("send_data_hansen.json", "critical_data_hansen.json"),
+    ("send_data_koch.json", "critical_data_koch.json"),
+    ("send_data_wiseman.json", "critical_data_wiseman.json"),
 ]
 
-# ---------- Auswertung ----------
-geprueft = []
-warnungen = []
+def check_bpm(bpm):
+    if bpm < 50:
+        return f"Puls zu niedrig: {bpm:g} BPM"
 
-for felder, funktion in pruefungen:
-    werte = [wert(f) for f in felder]
-    if None in werte:
-        continue                      # Daten fehlen -> Prüfung ignorieren
-    geprueft.extend(felder)
-    warnung = funktion(*werte)
-    if warnung:
-        warnungen.append(warnung)
+    if bpm > 120:
+        return f"Puls zu hoch: {bpm:g} BPM"
 
-print(json.dumps({
-    "alarm": len(warnungen) > 0,
-    "warnungen": warnungen,
-    "geprueft": geprueft
-}, ensure_ascii=False))
+def check_blood_pressure(systole, diastole):
+    if systole > 145 or diastole > 90:
+        return f"Blutdruck zu hoch: {systole:g}/{diastole:g}"
+           
+    if systole < 100 or diastole < 68:
+        return f"Blutdruck zu niedrig: {systole:g}/{diastole:g}"
 
-pfad = os.path.join(os.path.dirname(os.path.abspath(__file__)), "critical_data.json")
+def check_temperature(temp):
+    if temp > 38.5:
+        return f"Fieber: {temp:g} °C"
+    if temp > 38:
+        return f"Erhöhte Temperatur: {temp:g} °C"
+    if temp < 37:
+        return f"Unterkühlung: {temp:g} °C"
 
-with open(pfad, "w", encoding="utf-8") as file:
-    json.dump({
-    "alarm": len(warnungen) > 0,
-    "warnungen": warnungen,
-    "geprueft": geprueft
-}, file, ensure_ascii=False)
+def check_oxygen(oxygen):
+    if oxygen < 95:
+        return f"Sauerstoffsättigung zu niedrig: {oxygen:g} %"
+
+def check_sleep(hours):
+    if hours < 6:
+        return f"Zu wenig Schlaf: {hours:g} h"
+
+def check_bone(current, initial):
+    if initial > 0 and current < initial * 0.9:
+        return f"Knochendichte um {(1 - current / initial) * 100:.0f} % gesunken"
+
+def check_muscle(current, initial):
+    if initial > 0 and current < initial * 0.9:
+        return f"Muskelkraft um {(1 - current / initial) * 100:.0f} % gesunken"
+
+def check_radiation(radiation):
+    if radiation > 1:
+        return f"Strahlenbelastung hoch: {radiation:g}"
+
+def check_weight(weight):
+    if weight < 50:
+        return f"Gewicht zu niedrig: {weight:g} kg"
+
+checks = [
+    (["BPM"], check_bpm),
+    (["Systole", "Diastole"], check_blood_pressure),
+    (["Bodytemperature"], check_temperature),
+    (["Oxygen-Saturation"], check_oxygen),
+    (["Sleep-Duration"], check_sleep),
+    (["Bone-Density", "Initial-Bone-Density"], check_bone),
+    (["Muscle-Strength", "Initial-Muscle-Strength"], check_muscle),
+    (["Radiation-Exposure"], check_radiation),
+    (["Weight"], check_weight),
+]
+
+def get_latest(data):
+    if isinstance(data, dict):
+        return data
+    if isinstance(data, list) and data:
+        return max(data, key=lambda entry: datetime.fromisoformat(entry["timestamp"]))
+    return {}
+
+def evaluate(data):
+    def get_value(key):
+        try:
+            return float(data[key])
+        except (KeyError, ValueError, TypeError):
+            return None
+
+    warnings = []
+    for fields, function in checks:
+        values = [get_value(field) for field in fields]
+        if None in values:
+            continue
+        warning = function(*values)
+        if warning:
+            warnings.append(warning)
+
+    return {
+        "alarm": len(warnings) > 0,
+        "warnings": warnings
+    }
+while True:
+    for input_file, output_file in files:
+        try:
+            with open(os.path.join(folder, input_file), "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            continue
+
+        result = evaluate(get_latest(data))
+
+        with open(os.path.join(folder, output_file), "w", encoding="utf-8") as f:
+            json.dump(result, f, ensure_ascii=False, indent=4)
+
+        from flask import send_from_directory
+
+    @app.route("/astronaut-data/<filename>")
+    def astronaut_data(filename):
+        return send_from_directory("Astronauten", filename)
+    time.sleep(0.1)
+
+
+
+
+

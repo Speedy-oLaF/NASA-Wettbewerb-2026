@@ -2,15 +2,129 @@
 <html lang="en">
 
 <head>
-    <link rel="stylesheet" href="../css/design.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='../css/design.css') }}">
-
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>History</title>
 
+    <style>
+        /* ---------- Design (wie css/design.css) ---------- */
+        a:hover {
+            color: rgb(247, 250, 250);
+            transition: all 0.5s;
+        }
+
+        p {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+        }
+
+        .header {
+            grid-area: header;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .wrapper {
+            display: grid;
+            min-height: 100vh;
+            grid-template-columns: 1fr;
+            grid-template-rows: auto auto 1fr auto;
+            grid-template-areas:
+                "header" "header"
+                "nav" "main"
+                "footer" "footer";
+            flex: 1;
+            gap: 2rem;
+        }
+
+        .nav {
+            grid-area: nav;
+            padding: 1rem;
+            max-width: 150px;
+        }
+
+        nav ul {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            background-color: #2b2d2e;
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #343738;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            margin: 0 auto;
+            max-width: 500px;
+        }
+
+        .main {
+            grid-area: main;
+            max-width: 1100px;
+            width: 100%;
+            margin-inline: 10px;
+            padding: 1rem;
+            justify-content: center;
+            align-self: center;
+            display: grid;
+        }
+
+        footer {
+            text-align: center;
+            grid-area: footer;
+            padding: 1rem;
+        }
+
+        .content {
+            display: flex;
+            flex: 1;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+
+        /* ---------- nur für Diagramm und Tabelle ---------- */
+        /* Menü immer sichtbar: Menü behält seine Breite, Inhalt nimmt den Rest
+           und wird nicht von der breiten Tabelle aus dem Bild geschoben */
+        .nav { flex: none; width: 150px; }
+        .main { flex: 1; min-width: 0; grid-template-columns: minmax(0, 1fr); }
+        .main > * { min-width: 0; }
+        .klein { font-size: 0.85rem; color: var(--pico-muted-color); }
+
+        .steuerung { display: flex; flex-wrap: wrap; gap: 1rem; align-items: end; margin-bottom: 1rem; }
+        .steuerung label { flex: 1 1 200px; margin: 0; }
+        .steuerung select, .steuerung input { margin: 0.3rem 0 0; }
+
+        .diagramm-titel { margin: 0; font-size: 1.1rem; }
+        .diagramm-box { position: relative; height: 340px; }
+
+        .legende {
+            display: flex; flex-wrap: wrap; gap: 0.4rem 1.25rem;
+            font-size: 0.85rem; margin-top: 0.5rem;
+        }
+        .legende span { display: inline-flex; align-items: center; gap: 0.4rem; }
+        .legende i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; }
+        .legende i.gestrichelt { width: 18px; height: 0; border-top: 2px dashed #9085e9; border-radius: 0; }
+        .legende i.raute { width: 9px; height: 9px; border-radius: 0; transform: rotate(45deg); margin: 0 2px; }
+        .legende i.dreieck { width: 12px; height: 11px; border-radius: 0; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+        .legende i.band {
+            width: 14px; height: 10px; border-radius: 2px;
+            background-color: rgba(12, 163, 12, 0.18); border: 1px solid rgba(12, 163, 12, 0.5);
+        }
+
+        .tabelle-scroll { overflow-x: auto; }
+        .tabelle-scroll table { font-size: 0.85rem; white-space: nowrap; margin: 0; }
+        .tabelle-scroll th { color: var(--pico-muted-color); font-weight: 600; }
+        .tabelle-scroll td { font-variant-numeric: tabular-nums; }
+    </style>
 </head>
 
 <body>
@@ -24,12 +138,12 @@
             <nav class="nav">
                 <aside>
                     <ul>
-                        <li><a href="../index.html">Home</a></li>
-                        <li><a href="vitalMeasurements.html">Messen</a></li>
-                        <li><a href="auswertung.html">Auswertung</a></li>
-                        <li><a href="symthome.html">Symptome</a></li>
-                        <li><a href="verlauf.html">Verlauf</a></li>
-                        <li><a href="training.html">Training</a></li>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="sides/vitalMeasurements.html">Messen</a></li>
+                        <li><a href="sides/auswertung.html">Auswertung</a></li>
+                        <li><a href="sides/symthome.html">Symptome</a></li>
+                        <li><a href="sides/verlauf.html">Verlauf</a></li>
+                        <li><a href="sides/training.html">Training</a></li>
                     </ul>
                 </aside>
             </nav>
@@ -37,6 +151,42 @@
 
             <main class="main">
 
+                <div class="steuerung">
+                    <label for="astronautAuswahl">Astronaut
+                        <select id="astronautAuswahl"></select>
+                    </label>
+                    <label for="kennzahlAuswahl">Value
+                        <select id="kennzahlAuswahl"></select>
+                    </label>
+                </div>
+
+                <article>
+                    <header>
+                        <h2 class="diagramm-titel" id="diagrammTitel">–</h2>
+                        <span class="klein" id="diagrammUntertitel"></span>
+                    </header>
+
+                    <div class="diagramm-box">
+                        <canvas id="diagramm" aria-label="Chart of the selected value over time" role="img"></canvas>
+                    </div>
+
+                    <div class="legende" id="legende"></div>
+                </article>
+
+                <article>
+                    <header>
+                        <strong>All measurements</strong>
+                        <span class="klein" id="anzahl"></span>
+                    </header>
+                    <div class="tabelle-scroll">
+                        <table class="striped">
+                            <thead id="kopf"></thead>
+                            <tbody id="zeilen"></tbody>
+                        </table>
+                    </div>
+                </article>
+
+                <p id="fehler" hidden></p>
 
             </main>
 
@@ -46,6 +196,525 @@
         </footer>
 
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <!-- ===== wie Website/werte.js ===== -->
+    <script>
+        // Anzeigenamen und Einheiten der Messwerte
+        const WERTE = {
+            herzfrequenz:             { label: "Heart rate",               einheit: "bpm" },
+            blutdruck:                { label: "Blood pressure",           einheit: "mmHg" },
+            koerpertemperatur:        { label: "Body temperature",         einheit: "°C" },
+            sauerstoffsaettigung:     { label: "Oxygen saturation",        einheit: "%" },
+            sauerstoffsaetigung:      { label: "Oxygen saturation",        einheit: "%" },
+            schlafdauer:              { label: "Sleep",                    einheit: "h" },
+            knochendichte:            { label: "Bone density",             einheit: "g/cm²" },
+            anfangs_knochendichte:    { label: "Initial bone density",     einheit: "g/cm²" },
+            muskelkraft:              { label: "Muscle strength",          einheit: "N" },
+            ausgangswert_muskelkraft: { label: "Initial muscle strength",  einheit: "N" },
+            sport:                    { label: "Sport",                    einheit: "h" },
+            ernaehrung:               { label: "Nutrition",                einheit: "kcal" },
+            strahlungsbelastung:      { label: "Radiation",                einheit: "mSv" },
+        };
+
+        function wertLabel(schluessel) {
+            return WERTE[schluessel] ? WERTE[schluessel].label : schluessel;
+        }
+
+        function datumFormatieren(iso) {
+            if (!iso) return "–";
+            const datum = new Date(iso);
+            return isNaN(datum) ? iso : datum.toLocaleString("de-DE");
+        }
+
+        // Grenzwerte wie in Python/Auswertung.py
+        // [untere Grenze, obere Grenze], null = keine Grenze
+        function zahlOderNull(wert) {
+            if (wert === null || wert === undefined || wert === "") return null;
+            const z = Number(wert);
+            return Number.isFinite(z) ? z : null;
+        }
+
+        function blutdruckTeil(messung, index) {
+            const teile = String(messung.blutdruck || "").split("/");
+            return teile.length === 2 ? zahlOderNull(teile[index]) : null;
+        }
+
+        function prozentVon(aktuell, anfang) {
+            const a = zahlOderNull(aktuell);
+            const b = zahlOderNull(anfang);
+            return a === null || !b ? null : Math.round((a / b) * 1000) / 10;
+        }
+
+        const KENNZAHLEN = [
+            { id: "herzfrequenz", label: "Heart rate", einheit: "bpm",
+              serien: [{ name: "Heart rate", wert: m => zahlOderNull(m.herzfrequenz) }],
+              grenzen: { innen: [[50, 130]], aussen: [[50, 120]] } },
+
+            { id: "blutdruck", label: "Blood pressure", einheit: "mmHg",
+              serien: [
+                  { name: "Systolic",  wert: m => blutdruckTeil(m, 0) },
+                  { name: "Diastolic", wert: m => blutdruckTeil(m, 1) },
+              ],
+              grenzen: { innen: [[90, 140], [60, 90]], aussen: [[90, 135], [60, 85]] } },
+
+            { id: "koerpertemperatur", label: "Body temperature", einheit: "°C",
+              serien: [{ name: "Body temperature", wert: m => zahlOderNull(m.koerpertemperatur) }],
+              grenzen: { innen: [[35.5, 37.5]], aussen: [[35.8, 37.3]] } },
+
+            { id: "sauerstoffsaettigung", label: "Oxygen saturation", einheit: "%",
+              serien: [{ name: "Oxygen saturation", wert: m => zahlOderNull(m.sauerstoffsaettigung) }],
+              grenzen: { innen: [[92, null]], aussen: [[95, null]] } },
+
+            { id: "schlafdauer", label: "Sleep", einheit: "h",
+              serien: [{ name: "Sleep", wert: m => zahlOderNull(m.schlafdauer) }],
+              grenzen: { innen: [[6, null]], aussen: [[7, null]] } },
+
+            { id: "knochendichte", label: "Bone density (of initial)", einheit: "%",
+              serien: [{ name: "Bone density", wert: m => prozentVon(m.knochendichte, m.anfangs_knochendichte) }],
+              grenzen: { innen: [[90, null]], aussen: [[95, null]] } },
+
+            { id: "muskelkraft", label: "Muscle strength (of initial)", einheit: "%",
+              serien: [{ name: "Muscle strength", wert: m => prozentVon(m.muskelkraft, m.ausgangswert_muskelkraft) }],
+              grenzen: { innen: [[80, null]], aussen: [[90, null]] } },
+
+            { id: "sport", label: "Sport", einheit: "h",
+              serien: [{ name: "Sport", wert: m => zahlOderNull(m.sport) }],
+              grenzen: { innen: [[1.5, null]], aussen: [[1.5, null]] } },
+
+            { id: "ernaehrung", label: "Nutrition", einheit: "kcal",
+              serien: [{ name: "Nutrition", wert: m => zahlOderNull(m.ernaehrung) }],
+              grenzen: { innen: [[2000, 3200]], aussen: [[2500, 3800]] } },
+
+            { id: "strahlungsbelastung", label: "Radiation", einheit: "mSv",
+              serien: [{ name: "Radiation", wert: m => zahlOderNull(m.strahlungsbelastung) }],
+              grenzen: { innen: [[null, 1.3]], aussen: [[null, 0.9]] } },
+        ];
+
+        function imBereich(wert, grenze) {
+            if (wert === null || !grenze) return true;
+            const [unten, oben] = grenze;
+            return (unten === null || wert >= unten) && (oben === null || wert <= oben);
+        }
+    </script>
+
+    <!-- ===== wie Website/verlauf.html ===== -->
+    <script>
+        // ---------- Farben (für den dunklen Hintergrund geprüft) ----------
+        const FARBEN = {
+            serien:   ["#3987e5", "#d95926"],   // Linie 1 blau, Linie 2 orange
+            surface:  "#181c25",
+            text:     "#eceeee",
+            text2:    "#c2c6c7",
+            muted:    "#8d9293",
+            grid:     "rgba(255, 255, 255, 0.06)",
+            band:     "rgba(12, 163, 12, 0.10)",
+            bandRand: "rgba(12, 163, 12, 0.45)",
+            aussen:   "#9085e9",                 // gestrichelte Grenzlinien für außen
+            kritisch: "#d03b3b",                 // für innen UND außen unsicher
+            warnung:  "#fab219",                 // nur für einen der beiden Bereiche sicher
+        };
+
+        // Spalten der Tabelle (Reihenfolge wie im Formular)
+        const SPALTEN = [
+            "herzfrequenz", "blutdruck", "koerpertemperatur", "sauerstoffsaettigung",
+            "schlafdauer", "knochendichte", "anfangs_knochendichte", "muskelkraft",
+            "ausgangswert_muskelkraft", "sport", "ernaehrung", "strahlungsbelastung",
+        ];
+
+        let alleDaten = {};
+        let diagramm = null;
+
+        // ---------- Hilfsfunktionen ----------
+        function zelle(tag, text) {
+            const el = document.createElement(tag);
+            el.textContent = text;
+            return el;
+        }
+
+        function kurzesDatum(iso) {
+            const d = new Date(iso);
+            if (isNaN(d)) return iso || "–";
+            return d.toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+        }
+
+        function merken(schluessel, wert) {
+            try { localStorage.setItem(schluessel, wert); } catch (e) {}
+        }
+
+        function gemerkt(schluessel) {
+            try { return localStorage.getItem(schluessel); } catch (e) { return null; }
+        }
+
+        function aktuelleMessungen() {
+            const name = document.getElementById("astronautAuswahl").value;
+            return [...(alleDaten[name] || [])]
+                .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        }
+
+        function aktuelleKennzahl() {
+            const id = document.getElementById("kennzahlAuswahl").value;
+            return KENNZAHLEN.find(k => k.id === id) || KENNZAHLEN[0];
+        }
+
+        // ---------- Plugins: sicherer Bereich, Fadenkreuz, Endwert ----------
+        function linie(ctx, f, py) {
+            ctx.beginPath();
+            ctx.moveTo(f.left, Math.round(py) + 0.5);
+            ctx.lineTo(f.right, Math.round(py) + 0.5);
+            ctx.stroke();
+        }
+
+        // Innen: grünes Band.  Außen: gestrichelte violette Linien.
+        const sichererBereich = {
+            id: "sichererBereich",
+            beforeDatasetsDraw(chart) {
+                const { innen = [], aussen = [] } = chart.options.plugins.sichererBereich;
+                const { ctx, chartArea: f, scales: { y } } = chart;
+                const pixel = (wert, standard) =>
+                    wert === null ? standard : Math.min(f.bottom, Math.max(f.top, y.getPixelForValue(wert)));
+                ctx.save();
+
+                for (const [unten, oben] of innen) {
+                    const yOben = pixel(oben, f.top), yUnten = pixel(unten, f.bottom);
+                    if (yUnten <= yOben) continue;
+                    ctx.fillStyle = FARBEN.band;
+                    ctx.fillRect(f.left, yOben, f.right - f.left, yUnten - yOben);
+                    ctx.strokeStyle = FARBEN.bandRand;
+                    ctx.lineWidth = 1;
+                    if (oben !== null) linie(ctx, f, yOben);
+                    if (unten !== null) linie(ctx, f, yUnten);
+                }
+
+                ctx.strokeStyle = FARBEN.aussen;
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([6, 4]);
+                for (const [unten, oben] of aussen) {
+                    if (oben !== null) linie(ctx, f, pixel(oben, f.top));
+                    if (unten !== null) linie(ctx, f, pixel(unten, f.bottom));
+                }
+                ctx.restore();
+            },
+        };
+
+        const fadenkreuz = {
+            id: "fadenkreuz",
+            afterDatasetsDraw(chart) {
+                const aktiv = chart.tooltip && chart.tooltip.getActiveElements();
+                if (!aktiv || aktiv.length === 0) return;
+                const x = aktiv[0].element.x;
+                const { ctx, chartArea: f } = chart;
+                ctx.save();
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(Math.round(x) + 0.5, f.top);
+                ctx.lineTo(Math.round(x) + 0.5, f.bottom);
+                ctx.stroke();
+                ctx.restore();
+            },
+        };
+
+        // Beschriftet nur den letzten Wert jeder Linie (nicht jeden Punkt)
+        const endwert = {
+            id: "endwert",
+            afterDatasetsDraw(chart) {
+                const { ctx } = chart;
+                const einheit = chart.options.plugins.endwert.einheit || "";
+                ctx.save();
+                ctx.font = "600 12px system-ui, -apple-system, 'Segoe UI', Arial, sans-serif";
+                ctx.fillStyle = FARBEN.text;
+                ctx.textBaseline = "middle";
+                chart.data.datasets.forEach((ds, i) => {
+                    const meta = chart.getDatasetMeta(i);
+                    for (let j = ds.data.length - 1; j >= 0; j--) {
+                        if (ds.data[j] === null) continue;
+                        const punkt = meta.data[j];
+                        const text = ds.data[j] + " " + einheit;
+                        const breite = ctx.measureText(text).width;
+                        const rechts = punkt.x + 10 + breite > chart.chartArea.right;
+                        ctx.textAlign = rechts ? "right" : "left";
+                        ctx.fillText(text, punkt.x + (rechts ? -10 : 10), punkt.y - 12);
+                        break;
+                    }
+                });
+                ctx.restore();
+            },
+        };
+
+        // ---------- Diagramm zeichnen ----------
+        // Bewertung eines Punktes für beide Bereiche
+        function bewertung(wert, grenzeInnen, grenzeAussen) {
+            const innen = imBereich(wert, grenzeInnen);
+            const aussen = imBereich(wert, grenzeAussen);
+            if (wert === null || (innen && aussen)) return { art: "ok", text: "" };
+            if (innen)  return { art: "warnung",  text: "  ⚠ safe inside only" };
+            if (aussen) return { art: "warnung",  text: "  ⚠ safe outside only" };
+            return { art: "kritisch", text: "  ⚠ unsafe inside and outside" };
+        }
+
+        const PUNKT = {
+            ok:       { stil: "circle",   radius: 4.5, farbe: null },
+            warnung:  { stil: "rectRot",  radius: 6.5, farbe: FARBEN.warnung },
+            kritisch: { stil: "triangle", radius: 7,   farbe: FARBEN.kritisch },
+        };
+
+        function diagrammZeichnen() {
+            const kennzahl = aktuelleKennzahl();
+            const messungen = aktuelleMessungen();
+            const { innen, aussen } = kennzahl.grenzen;
+
+            document.getElementById("diagrammTitel").textContent =
+                kennzahl.label + " (" + kennzahl.einheit + ")";
+            document.getElementById("diagrammUntertitel").textContent =
+                (document.getElementById("astronautAuswahl").value || "No data loaded") +
+                " · safe ranges for working inside and outside";
+
+            const labels = messungen.map(m => kurzesDatum(m.timestamp));
+
+            const datasets = kennzahl.serien.map((serie, i) => {
+                const werte = messungen.map(serie.wert);
+                const bewertungen = werte.map(w => bewertung(w, innen[i], aussen[i]));
+                const punkt = bewertungen.map(b => PUNKT[b.art]);
+                return {
+                    label: serie.name,
+                    data: werte,
+                    borderColor: FARBEN.serien[i],
+                    backgroundColor: FARBEN.serien[i],
+                    borderWidth: 2,
+                    tension: 0,
+                    spanGaps: true,
+                    borderCapStyle: "round",
+                    borderJoinStyle: "round",
+                    pointStyle: punkt.map(p => p.stil),
+                    pointRadius: punkt.map(p => p.radius),
+                    pointHoverRadius: punkt.map(p => p.radius + 2),
+                    pointBackgroundColor: punkt.map(p => p.farbe || FARBEN.serien[i]),
+                    pointBorderColor: FARBEN.surface,
+                    pointBorderWidth: 2,
+                    pointHitRadius: 14,
+                    bewertungen,
+                };
+            });
+
+            // y-Achse so wählen, dass Werte UND beide Grenzbereiche sichtbar sind
+            const alleWerte = datasets.flatMap(d => d.data).filter(w => w !== null);
+            const grenzWerte = innen.flat().concat(aussen.flat()).filter(w => w !== null);
+            const sichtbar = alleWerte.concat(grenzWerte);
+            let yMin = Math.min(...sichtbar), yMax = Math.max(...sichtbar);
+            const polster = (yMax - yMin) * 0.08 || Math.abs(yMax) * 0.1 || 1;
+            yMin -= polster; yMax += polster;   // Chart.js rundet daraus saubere Achsenwerte
+
+            const optionen = {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 300 },
+                interaction: { mode: "index", intersect: false },
+                layout: { padding: { top: 18, right: 12 } },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        border: { color: "rgba(255,255,255,0.15)" },
+                        ticks: { color: FARBEN.muted, maxRotation: 0, autoSkipPadding: 16 },
+                    },
+                    y: {
+                        suggestedMin: yMin,
+                        suggestedMax: yMax,
+                        grid: { color: FARBEN.grid },
+                        border: { display: false },
+                        ticks: { color: FARBEN.muted, maxTicksLimit: 6 },
+                    },
+                },
+                plugins: {
+                    legend: { display: false },
+                    sichererBereich: { innen, aussen },
+                    endwert: { einheit: kennzahl.einheit },
+                    tooltip: {
+                        backgroundColor: "#13171f",
+                        borderColor: "rgba(255,255,255,0.12)",
+                        borderWidth: 1,
+                        titleColor: FARBEN.text,
+                        bodyColor: FARBEN.text2,
+                        padding: 10,
+                        boxPadding: 4,
+                        usePointStyle: true,
+                        callbacks: {
+                            title: items => {
+                                const m = messungen[items[0].dataIndex];
+                                const ort = m.bereich == 1 ? "measured inside" : m.bereich == 2 ? "measured outside" : "";
+                                return datumFormatieren(m.timestamp) + (ort ? "  ·  " + ort : "");
+                            },
+                            label: item => {
+                                if (item.raw === null) return item.dataset.label + ": –";
+                                return item.dataset.label + ": " + item.raw + " " + kennzahl.einheit +
+                                    item.dataset.bewertungen[item.dataIndex].text;
+                            },
+                        },
+                    },
+                },
+            };
+
+            if (diagramm) diagramm.destroy();
+            diagramm = new Chart(document.getElementById("diagramm"), {
+                type: "line",
+                data: { labels, datasets },
+                options: optionen,
+                plugins: [sichererBereich, fadenkreuz, endwert],
+            });
+
+            legendeZeichnen(kennzahl, alleWerte.length);
+        }
+
+        function legendeZeichnen(kennzahl, anzahlWerte) {
+            const legende = document.getElementById("legende");
+            const teile = [];
+
+            function eintrag(klasse, farbe, text) {
+                const span = document.createElement("span");
+                const i = document.createElement("i");
+                if (klasse) i.className = klasse;
+                if (farbe) i.style.backgroundColor = farbe;
+                span.append(i, text);
+                return span;
+            }
+
+            // Mehrere Linien (Blutdruck) -> Legende für jede Linie
+            if (kennzahl.serien.length > 1) {
+                kennzahl.serien.forEach((s, i) => teile.push(eintrag("", FARBEN.serien[i], s.name)));
+            }
+            teile.push(eintrag("band", null, "Safe range inside"));
+            teile.push(eintrag("gestrichelt", null, "Safe range outside"));
+            teile.push(eintrag("raute", FARBEN.warnung, "Safe for only one"));
+            teile.push(eintrag("dreieck", FARBEN.kritisch, "Unsafe inside and outside"));
+            if (anzahlWerte === 0) teile.push(zelle("span", "No values recorded for this yet."));
+
+            legende.replaceChildren(...teile);
+        }
+
+        // ---------- Tabelle ----------
+        function tabelleZeichnen() {
+            const kopf = document.createElement("tr");
+            kopf.append(zelle("th", "Date"), zelle("th", "Location"));
+            for (const s of SPALTEN) kopf.appendChild(zelle("th", wertLabel(s) + " (" + WERTE[s].einheit + ")"));
+            document.getElementById("kopf").replaceChildren(kopf);
+
+            const messungen = aktuelleMessungen().reverse();   // neueste zuerst
+            const zeilen = messungen.map(m => {
+                const tr = document.createElement("tr");
+                const ort = m.bereich == 1 ? "Inside" : m.bereich == 2 ? "Outside" : "–";
+                tr.append(zelle("td", datumFormatieren(m.timestamp)), zelle("td", ort));
+                for (const s of SPALTEN) {
+                    const wert = m[s];
+                    tr.appendChild(zelle("td", wert === null || wert === undefined || wert === "" ? "–" : wert));
+                }
+                return tr;
+            });
+            document.getElementById("zeilen").replaceChildren(...zeilen);
+            document.getElementById("anzahl").textContent =
+                messungen.length === 0 ? " · no measurements yet" : " · " + messungen.length + " measurement(s)";
+        }
+
+        function allesZeichnen() {
+            diagrammZeichnen();
+            tabelleZeichnen();
+        }
+
+        // ---------- Daten aus den send_data_*.json Dateien ----------
+        // Akzeptiert: Liste von Messungen (send_data_*.json, Test-Dateien),
+        // { "Name": [Messungen] } (pushedHealthData.php) und das alte
+        // verschachtelte Format mit "Astronaut-Name" / "Measurement-Location".
+        function messungHinzufuegen(ziel, m) {
+            if (!m || typeof m !== "object" || !m.timestamp) return;
+            const eintrag = { ...m };
+            if (!eintrag.astronautName && eintrag["Astronaut-Name"]) eintrag.astronautName = eintrag["Astronaut-Name"];
+            if (eintrag.bereich === undefined && eintrag["Measurement-Location"]) {
+                eintrag.bereich = eintrag["Measurement-Location"] === "Inside" ? 1 : 2;
+            }
+            if (eintrag.sauerstoffsaettigung === undefined && eintrag.sauerstoffsaetigung !== undefined) {
+                eintrag.sauerstoffsaettigung = eintrag.sauerstoffsaetigung;
+            }
+            const name = eintrag.astronautName || "Unknown";
+            (ziel[name] = ziel[name] || []).push(eintrag);
+        }
+
+        function jsonEinlesen(json, ziel) {
+            if (Array.isArray(json)) {
+                json.forEach(m => messungHinzufuegen(ziel, m));
+            } else if (json && typeof json === "object") {
+                const werte = Object.values(json);
+                if (werte.length && werte.every(Array.isArray)) {
+                    werte.forEach(liste => liste.forEach(m => messungHinzufuegen(ziel, m)));
+                } else {
+                    // altes Format: oben eine Messung, darunter "0", "1", ... als weitere
+                    const flach = {};
+                    for (const [k, v] of Object.entries(json)) {
+                        if (v !== null && typeof v === "object") jsonEinlesen(v, ziel);
+                        else flach[k] = v;
+                    }
+                    messungHinzufuegen(ziel, flach);
+                }
+            }
+        }
+
+        function datenAnzeigen(neueDaten) {
+            alleDaten = neueDaten;
+            const auswahl = document.getElementById("astronautAuswahl");
+            const vorher = auswahl.value || gemerkt("verlaufAstronaut");
+            auswahl.replaceChildren(...Object.keys(alleDaten).map(n => zelle("option", n)));
+            if (vorher && vorher in alleDaten) auswahl.value = vorher;
+            allesZeichnen();
+        }
+
+        // Daten immer aus Python/Astronauten/send_data_<nachname>.json
+        // (Pfad relativ zur HTML-Datei: die HTML liegt im Projektordner neben "Python")
+        async function automatischLaden() {
+            const ordner = "Python/Astronauten/";
+            const fehler = document.getElementById("fehler");
+            const neueDaten = {};
+            for (const n of ["wiseman", "glover", "koch", "hansen"]) {
+                try {
+                    const antwort = await fetch(ordner + "send_data_" + n + ".json", { cache: "no-store" });
+                    if (antwort.ok) jsonEinlesen(await antwort.json(), neueDaten);
+                } catch (e) {}
+            }
+            if (Object.keys(neueDaten).length) {
+                fehler.hidden = true;
+                datenAnzeigen(neueDaten);
+            } else {
+                fehler.textContent = "Could not load " + ordner + "send_data_*.json " +
+                    "(start a web server on the Desktop, e.g. python3 -m http.server).";
+                fehler.hidden = false;
+            }
+        }
+
+        // ---------- Bedienung ----------
+        const kennzahlAuswahl = document.getElementById("kennzahlAuswahl");
+        kennzahlAuswahl.replaceChildren(...KENNZAHLEN.map(k => {
+            const o = zelle("option", k.label);
+            o.value = k.id;
+            return o;
+        }));
+        const gemerkteKennzahl = gemerkt("verlaufKennzahl");
+        if (KENNZAHLEN.some(k => k.id === gemerkteKennzahl)) kennzahlAuswahl.value = gemerkteKennzahl;
+
+        kennzahlAuswahl.addEventListener("change", () => {
+            merken("verlaufKennzahl", kennzahlAuswahl.value);
+            diagrammZeichnen();
+        });
+
+        document.getElementById("astronautAuswahl").addEventListener("change", e => {
+            merken("verlaufAstronaut", e.target.value);
+            allesZeichnen();
+        });
+
+
+        Chart.defaults.font.family = "system-ui, -apple-system, 'Segoe UI', Arial, sans-serif";
+        Chart.defaults.color = FARBEN.muted;
+
+        allesZeichnen();
+        automatischLaden();
+    </script>
 </body>
 
 

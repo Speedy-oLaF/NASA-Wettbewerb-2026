@@ -1,0 +1,7 @@
+{
+    "alarm": true,
+    "warnings": [
+        "Puls auffällig: 34 BPM",
+        "Unterkühlung: 36 °C"
+    ]
+}
