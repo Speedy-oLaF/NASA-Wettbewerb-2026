@@ -112,8 +112,9 @@ file_put_contents(
 <html lang="en">
 
 <head>
-<link rel="stylesheet"
-      href="{{ url_for('static', filename='css/pico.min.css') }}">    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet"href="{{ url_for('static', filename='css/pico.min.css') }}">
+    <link rel="stylesheet" href="../css/pico-main/css/pico.min.css">
+    <link rel="stylesheet" href="../css/design.css">
 
 
     <meta charset="UTF-8">
@@ -125,6 +126,7 @@ file_put_contents(
             background-color: #2b2d2e;
             gap: 0px;
             border: 1px solid #343738;
+
         }
 
         #buttons-tr {
@@ -163,7 +165,7 @@ file_put_contents(
                         <li><a href="../sides/symptome.html">Symptome</a></li>
                         <li><a href="../sides/verlauf.html">Verlauf</a></li>
                         <li><a href="../sides/training.html">Training</a></li>
-                        <li><a href="../sides/flugarzt.html">Flugarzt</a></li>
+                        <li><a href="flugarzt.html">Flugarzt</a></li>
                     </ul>
                 </aside>
             </nav>
@@ -211,15 +213,6 @@ file_put_contents(
                         <td><button type="button" onclick="window.location.href='auswertung.php'">Auswerten</button></td>
                     </tr>
                 </table>
-                 <h2>Gesendete Daten</h2>
-                <pre>
-                <?php print_r($send_data); ?>
-                </pre>
-
-                <h2>Nicht gesendete Daten</h2>
-                <pre>
-                <?php print_r($non_send_data); ?>
-                </pre>
 
             </main>
 
@@ -231,7 +224,7 @@ file_put_contents(
 
 
     </div>
-    <script src="../sides/layout.js"></script>
+
 </body>
 
 </html>

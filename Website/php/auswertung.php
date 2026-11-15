@@ -91,9 +91,9 @@ foreach ($send_data as $key => $element) {
 <html lang="de">
 
 <head>
-<link rel="stylesheet"
-      href="{{ url_for('static', filename='css/pico.min.css') }}">    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-
+  <link rel="stylesheet"href="{{ url_for('static', filename='css/pico.min.css') }}">
+  <link rel="stylesheet" href="../css/pico-main/css/pico.min.css">
+  <link rel="stylesheet" href="../css/design.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Auswertung</title>

@@ -2,9 +2,9 @@
 <html lang="en">
 
 <head>
-    <link rel="stylesheet" href="css/design.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-
+  <link rel="stylesheet"href="{{ url_for('static', filename='css/pico.min.css') }}">
+  <link rel="stylesheet" href="css/pico-main/css/pico.min.css">
+  <link rel="stylesheet" href="css/design.css">
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,7 +17,32 @@
             border: 1px solid #343738;
         }
 
-  </style>
+        .main {
+            display: flex;
+            justify-content: center;
+        }
+
+        .button-container {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            width: 100%;
+        }
+
+        .button-container button {
+            grid-column: 2;
+            width: 20vw;
+            min-width: 120px;
+            max-width: 300px;
+            justify-self: center;
+        }
+
+        .button-container a {
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+
+
 </head>
 
 <body>
@@ -45,8 +70,9 @@
 
             <main class="main" >
 
-                <button style="width: 100%;" class="button"><a style="color: white; text-decoration: none;" href="sides/vitalMeasurements.html">Start</a></button>
-
+                <div class="button-container">
+                    <button class="button"><a href="sides/vitalMeasurements.html">Start</a></button>
+                </div>
             </main>
 
         </div>
